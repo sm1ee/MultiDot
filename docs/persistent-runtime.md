@@ -1,15 +1,20 @@
 # Configurable runtime, preparation only
 
 Use the [quick setup guide](simple-setup.md) for the preferred user flow:
-`multidot.py init` → private dots-list edit → `setup` → foreground `run`.
-The list selects the names and number of dots. A/B/C and a count of three are
-legacy examples, not architecture requirements.
+interactive `multidot.py setup` → separate foreground `run`. The wizard asks
+for each dot's name, tunnel ID and hidden API key, then whether to add another
+dot (default: no). No `init` or manual JSON edit is needed. The list selects the
+names and number of dots. A/B/C and a count of three are legacy examples, not
+architecture requirements.
 
 **No real setup, authenticated tunnel connection, actual dot-account execution,
 Events acceptance or always-on deployment has been verified.** Tests use
 synthetic identities. The intended host remains dot's own cloud, not the user's
-Mac, and a safe private editing route for the user in that cloud is still
-unverified. Code support does not establish that access or a live connection.
+Mac, and a supported private terminal/input route for the user in that cloud
+is still unverified. A native terminal and an executor may use different home
+directories and process/network namespaces; a blank config in one does not
+prove access to the runtime in the other. Code support does not establish that
+access or a live connection.
 
 ## Prerequisites and paths
 
@@ -45,22 +50,28 @@ runtime/state/credential directory is `~/.multidot/state/`. These use the
 current OS user's home directory; neither default is repository-relative or
 relative to the calling directory. The tools default above is unchanged.
 
-Default `init` creates only the missing `~/.multidot` application directory
-(0700) and its private config file (0600), never the user's home directory. It
-does not change existing directory permissions and refuses an unsafe or
-symlinked existing application directory. An existing config is never
-overwritten. Custom config filenames must still end in `.private.json` or
-`.local.json`; bare `config.json` is allowed only at the default private home
-location.
+The wizard saves a private config file (0600) only after its final confirmation,
+creating the missing `~/.multidot` application directory (0700) if needed. It
+never creates the user's home directory, changes existing directory
+permissions, or accepts an unsafe or symlinked existing application directory.
+The optional `init` command still creates only a blank template, without
+overwriting an existing file. The wizard may fill that reviewed blank template,
+but refuses a populated config unchanged. Custom config filenames must still
+end in `.private.json` or `.local.json`; bare `config.json` is allowed only at
+the default private home location.
 
 For different approved locations, supply paths, never keys:
 
 ```sh
-python3 scripts/multidot.py init --config /ABS/PATH/dots.private.json
-# Privately edit that config yourself before setup.
-python3 scripts/multidot.py setup --config /ABS/PATH/dots.private.json --tools-root /ABS/PATH/multidot-tools --state-root /ABS/PATH/multidot-state
+python3 scripts/multidot.py setup --interactive --config /ABS/PATH/dots.private.json --tools-root /ABS/PATH/multidot-tools --state-root /ABS/PATH/multidot-state
+# Start separately after execution and tunnel-connection approval.
 python3 scripts/multidot.py run --state-root /ABS/PATH/multidot-state
 ```
+
+Without `--interactive`, an explicit `--config` keeps the existing
+non-interactive file-based flow. Use `setup --non-interactive` to load an
+existing default config without prompts. The `--interactive` and
+`--non-interactive` flags are mutually exclusive and apply to setup.
 
 `/ABS/PATH/…` values are placeholders. The wrapper expands quoted `~/...` paths
 for `--config`, `--state-root` and `--tools-root`. Relative overrides resolve
@@ -118,20 +129,37 @@ these defaults or this guide.
 
 ## What user-run setup does
 
-After the required approval for local credential creation, the user runs:
+For a fresh installation, the user runs:
 
 ```sh
-python3 scripts/multidot.py init
-# Privately edit ~/.multidot/config.json yourself.
 python3 scripts/multidot.py setup
 ```
 
-Each entry supplies `name`, `tunnel_id`, `runtime_api_key`, plus optional `role`.
-`worker` is the default. At least one regular worker is required; at most one
-entry may have `role: synthesis`. Names are nonempty Unicode display labels,
-not queue identities or role selectors. There is no fixed 3/4/16-dot count
-limit; configuration byte budgets, OS ports, process capacity and memory bound
-what can run. Each entry needs a distinct existing tunnel ID.
+The wizard requires a terminal with hidden key entry and refuses visible-key
+fallback or piped input. It collects and validates all entries before writing
+the config. One final `Save and prepare local setup? [y/N]` confirmation
+explains that it saves a plaintext private config and creates local internal
+credentials at the displayed destinations. Enter defaults to no. After
+approval, it saves the complete config and performs local setup. The wizard
+does not start services or make network connections.
+
+Each entry supplies `name`, `tunnel_id`, and `runtime_api_key`; the wizard uses
+the default `worker` role. Advanced file-based setup permits an optional
+`role: synthesis` on at most one entry, with at least one regular worker
+required. Names are nonempty Unicode display labels, not queue identities or
+role selectors. There is no fixed 3/4/16-dot count limit; configuration byte
+budgets, OS ports, process capacity and memory bound what can run. Each entry
+needs a distinct existing tunnel ID.
+
+Do not edit the config concurrently with the wizard. Its advisory lock only
+coordinates cooperating wizard processes, not unrelated editors. Declining
+or canceling before config publication leaves the destination unchanged and
+retains no secret temporary file during normal cleanup. If local preparation
+fails after config publication, the complete config stays saved and a fixed
+error is reported without values. Resolve the error and retry the saved config
+with `setup --non-interactive` or an explicit `--config`. SIGKILL or host loss
+can leave temporary files or an uncertain publication; no crash-cleanup
+guarantee is made. See [private config handling](private-key-config.md).
 
 A new setup selects free loopback ports, creates stable UUID-based worker/queue
 IDs and a tenant, initializes fresh upstream storage through its reviewed APIs,
@@ -152,9 +180,11 @@ Events or start services. A successful setup does not verify the external key's
 permissions. Crashes can leave a private stage; see
 [private config handling](private-key-config.md) before retrying.
 
-On a stopped existing installation, entries are matched by tunnel ID against
-the private manifest. Display-name edits and list reordering preserve UUIDs,
-queues, tenant, ports, keys and queued work. Adding/removing dots, replacing a
+On a stopped existing installation, use file-based setup with
+`--non-interactive` or an explicit `--config`; the wizard refuses populated
+configs. Entries are matched by tunnel ID against the private manifest.
+Display-name edits and list reordering preserve UUIDs, queues, tenant, ports,
+keys and queued work. Adding/removing dots, replacing a
 tunnel, changing a role or replacing a key is refused pending an explicit
 migration/rotation workflow. Missing state is not silently reprovisioned.
 Never discard existing state to work around those checks.
@@ -338,7 +368,10 @@ A secret-free executor request reached `api.openai.com/v1/tunnels` and returned
 401; it established routing, not authentication. The cloud desktop returned
 network-unreachable for the same destination. No network restriction was
 changed. A fake-only secure-entry submit attempt was blocked; no real secret
-was submitted. A supported private-entry path remains an outstanding gate.
+was submitted. A supported private-entry path into the intended runtime
+remains an outstanding gate. A terminal wizard and a blank native-terminal
+config do not themselves establish shared home paths, namespaces, installed
+tools, or permission for a real setup and connection.
 
 ## Repeatable validation
 

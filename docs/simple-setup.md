@@ -1,132 +1,165 @@
 # MultiDot Quick Setup
 
-For each dot, you provide a **name, tunnel ID, and runtime API key**.
-The `setup` command prepares the internal producer/worker tokens and ports.
+Run `setup` to enter each dot's **name, tunnel ID, and hidden runtime API key**.
+The wizard saves the private config and prepares internal tokens and ports
+after one final confirmation. No manual JSON editing or `init` step is needed.
 
-A/B/C and a three-dot configuration are only examples. Use any display names
-you like, including names in other languages, and add as many entries to the
-`dots` list as you need. There is no fixed limit of 3, 4, or 16 dots, but limits
-such as configuration file size, available ports, and memory still apply.
+Use any display names you like, including names in other languages, and add as
+many dots as you need. There is no fixed limit of 3, 4, or 16 dots, but
+configuration size, available ports, and host resources still apply. Every dot
+entered through the wizard defaults to `worker`.
 
 > This is currently at the code and local-validation stage. Neither setup nor
 > tunnel connections have been run with real keys. The target environment is
-> **dot's cloud**, rather than your Mac. A secure way for you to edit files
-> directly in that environment has not yet been confirmed. Do not enter real
-> keys until that is available.
+> **dot's cloud**, rather than your Mac. A supported private terminal/input
+> route into that runtime is still unverified. Do not enter real keys until
+> that route and the required setup/run approvals are in place. A native
+> terminal and an executor may have different home directories and namespaces;
+> a blank config in one does not establish access to the runtime in the other.
 
-## 1. Create an Empty Configuration
+## 1. Open the Setup Wizard
 
 These steps are for a fresh installation with no existing live or retained
-state to preserve. If you already have an installation, first follow
+state to preserve. For an existing installation, first follow the
 [existing-installation guidance](persistent-runtime.md#existing-installations-and-manual-path-changes).
 Changing defaults does not move old files or renew credentials.
 
-Run this command yourself from the repository in the Linux environment where
-MultiDot will run. Python 3.11+ and the verified, pinned tool versions must be
-installed first.
-
-```sh
-python3 scripts/multidot.py init
-```
-
-This creates `~/.multidot/config.json` with read and write access restricted
-to its owner (0600), creating a missing `~/.multidot` directory with 0700
-permissions. It does not overwrite an existing file, change existing directory
-permissions, or create the user's home directory. An unsafe or symlinked
-existing application directory is refused. Setup later puts private runtime
-state and credentials under `~/.multidot/state/`. Both defaults are under the
-current OS user's home directory, independent of the checkout or calling
-directory.
-
-## 2. Edit the File Yourself
-
-Open `~/.multidot/config.json` in a trusted private editor. Fill in the empty
-strings. To use more dots, add entries to the list in the same format.
-
-```json
-{
-  "schema_version": 1,
-  "dots": [
-    {"name": "Researcher", "tunnel_id": "", "runtime_api_key": ""}
-  ]
-}
-```
-
-- `name`: Your preferred display name. The name does not determine the dot's role or permissions.
-- `tunnel_id`: An existing ID from [OpenAI Tunnels settings](https://platform.openai.com/settings/organization/tunnels). Each entry must use a different ID.
-- `runtime_api_key`: A key prepared in [OpenAI API keys settings](https://platform.openai.com/settings/organization/api-keys) with **Read + Use** permissions for that tunnel. Do not add the `Bearer ` prefix or use an admin key.
-
-You may use one key for multiple entries, but **both the key and its principal
-must have access to each tunnel and the associated workspace/organization**.
-Belonging to the same account does not automatically grant access to every
-tunnel. See the [official permissions guide](https://github.com/openai/tunnel-client/blob/v0.0.16/docs/permissions.md).
-
-If you omit the role, every dot defaults to `worker`. Add `"role": "synthesis"`
-to an entry only for an advanced configuration that needs a dot to combine
-results. At most one synthesis dot is allowed, and at least one regular
-`worker` is required.
-
-Do not share a file containing keys through chat, Git, screenshots, or shared
-documents. Do not ask an agent to open or inspect the file. Run the following
-commands yourself as well. The file is unencrypted plain text.
-
-## 3. Run Setup Once
-
-After approving the creation of local internal credentials, run this command
-yourself:
+Run this command yourself from the repository in the intended Linux runtime
+environment. Python 3.11+ and the reviewed, pinned toolchain must already be
+installed. Use a trusted private terminal that supports hidden key entry.
 
 ```sh
 python3 scripts/multidot.py setup
 ```
 
-The command verifies the installed, pinned tool versions, then prepares
-internal queues, tokens, ports, and state files. It does not download tools,
-connect to OpenAI, create new tunnels, or start services. A success message
-does not confirm a real account connection or the key's remote permissions.
+The wizard asks for:
 
-If you see `reviewed_runtime_installation_missing`, the verified tools must
-be installed first. Re-entering the key will not fix this. See
+1. A name for the dot
+2. Its existing tunnel ID
+3. Its runtime API key, with input hidden
+4. Whether to add another dot, defaulting to no
+
+Repeat for each dot you want. There is no initial dot-count question. The wizard
+refuses to accept keys if hidden terminal entry is unavailable; it does not
+fall back to echoing keys or accepting piped input.
+
+Use an existing ID from
+[OpenAI Tunnels settings](https://platform.openai.com/settings/organization/tunnels).
+Each dot must use a different tunnel ID. Use a runtime key from
+[OpenAI API keys settings](https://platform.openai.com/settings/organization/api-keys)
+with **Read + Use** permissions for that tunnel. Enter the raw key without
+`Bearer `, whitespace, or line breaks. Do not use an admin key.
+
+You may reuse a key only when **both the key and its principal have access to
+every selected tunnel and its associated workspace/organization**. Sharing an
+account alone does not grant that access. See the
+[official permissions guide](https://github.com/openai/tunnel-client/blob/v0.0.16/docs/permissions.md).
+Local setup validates format, not remote permissions.
+
+## 2. Confirm Saving and Local Preparation
+
+After collecting the complete list, the wizard explains the private config
+and state destinations, plaintext key storage, and creation of local internal
+credentials. It asks once:
+
+```text
+Save and prepare local setup? [y/N]
+```
+
+Pressing Enter declines. No config is written before approval. After approval,
+the complete config is saved as `~/.multidot/config.json`, with owner-only 0600
+permissions. A missing `~/.multidot` application directory is created with 0700
+permissions. Unsafe or symlinked application directories are refused; existing
+directory permissions are not changed, and the user's home directory is never
+created. Runtime state and credentials go under `~/.multidot/state/`. Both
+defaults use the current OS user's home directory, independent of the checkout
+or calling directory.
+
+Setup prepares local queues, internal tokens, ports, and state using the
+already-installed toolchain. It does not download tools, contact OpenAI, create
+tunnels, or start services. Success does not confirm account connectivity.
+
+The wizard can fill the reviewed blank template produced by `init`. It refuses
+a populated existing config and leaves it unchanged; use the file-based flow
+below to reuse one. Do not edit the config while the wizard is open. Its
+advisory lock does not prevent unrelated editors from writing the file.
+
+Declining or canceling before config publication leaves the config unchanged
+and retains no secret temporary file during normal cleanup. Abrupt process
+death, SIGKILL, or host loss cannot guarantee cleanup. If local preparation
+fails after the config is saved, the **complete config stays saved**, and the
+command reports a fixed error without displaying keys. Do not enter the keys
+again or delete existing state to bypass a failure. After resolving the
+reported problem, use `setup --non-interactive` to retry the saved default
+config. See [private config handling](private-key-config.md) before retrying
+after an interrupted publication.
+
+For `reviewed_runtime_installation_missing`, install the reviewed tools first;
+re-entering a key will not help. See
 [prerequisites and runtime paths](persistent-runtime.md#prerequisites-and-paths).
 
-## 4. Start the Runtime
+## 3. Start the Runtime Separately
 
-Run this command yourself in an environment approved for connecting to the
-specified tunnels and running the runtime:
+After separate approval for service execution and the specified tunnel
+connections, run:
 
 ```sh
 python3 scripts/multidot.py run
 ```
 
-This runs the full configuration in the **foreground**. Keep the session open
-and press Ctrl-C in that session to stop it. No service is installed to start
-automatically at boot. Continued operation is not guaranteed if the session
-or cloud host shuts down.
+This runs the full configuration in the **foreground**. Keep its session open
+and press Ctrl-C there to stop. No boot service is installed. Continued
+operation is not guaranteed if the session or cloud host shuts down.
 
-## Choosing Other Paths
+Never paste keys in chat, command arguments, screenshots, logs, or Git. The
+private config is unencrypted plaintext. Do not ask an agent to open a filled
+real config or operate on its secrets without a separately supported secure
+flow. Run these real setup and runtime commands yourself.
 
-Use `--config /ABS/PATH/dots.private.json` on `init` and `setup` to choose
-another private input file. Custom config filenames must end in `.private.json`
-or `.local.json`; the shorter `config.json` name is allowed only at the default
-`~/.multidot/config.json` location. Use `--state-root /ABS/PATH/state` on
-`setup`, `run`, `status`, and `stop` to choose another state directory. Reuse those overrides
-on later commands; a different state root is a different installation target.
-Quoted `~/...` paths are expanded by the wrapper. Relative overrides resolve
-from the directory where you invoke the command, not the repository.
+## Existing Files and Other Paths
+
+The command selects its mode as follows:
+
+- `setup`: wizard at `~/.multidot/config.json`
+- `setup --non-interactive`: use an existing default config without prompts
+- `setup --config /ABS/PATH/dots.private.json`: preserve the existing file-based,
+  non-interactive flow at that path
+- `setup --interactive --config /ABS/PATH/dots.private.json`: wizard at a custom
+  private path
+
+`--interactive` and `--non-interactive` are mutually exclusive. Non-interactive
+setup still requires prior approval for local credential creation; it is not
+a way to bypass that requirement. `init` remains available to create a blank
+template only, without overwriting an existing file, for advanced file-based
+workflows. New users do not need it.
+
+Custom config filenames must end in `.private.json` or `.local.json`; bare
+`config.json` is accepted only at the default private home location. Use
+`--state-root /ABS/PATH/state` on `setup`, `run`, `status`, and `stop` to select
+another state directory. Reuse the same override later: a different state root
+is a different installation target. Quoted `~/...` paths are expanded, and
+relative paths resolve from the calling directory, not the repository.
 
 The reviewed tools still default to a `multidot-tools` sibling of the
-repository; `--tools-root` remains available for a different approved location.
-Keep private config and state outside the checkout. See the
-[runtime paths](persistent-runtime.md#prerequisites-and-paths) and
-[existing-installation guidance](persistent-runtime.md#existing-installations-and-manual-path-changes)
-before changing an existing setup.
+repository; `--tools-root` selects another approved location. Keep private
+config and state outside the checkout. See the
+[runtime paths](persistent-runtime.md#prerequisites-and-paths) before changing
+an existing installation.
 
-## Making Changes Later
+## Advanced Changes Later
 
-- Choose the names, number of dots, and roles during initial setup. To change display names or reorder the list, stop the runtime, edit the file, and rerun `setup`. Internal UUIDs, queues, tenants, and keys are preserved.
-- For an existing installation, `setup` currently rejects adding or removing dots, changing tunnels or roles, and replacing keys. These changes require a separate migration or replacement procedure. Do not delete existing state to bypass this restriction.
-- Internal tokens expire after 30 days. They are not renewed automatically, so continued operation after expiration requires an explicit renewal procedure.
-- Real task execution by each dot, Events connections, and delivery of results to the user require separate validation.
+- To rename dots or reorder an existing list, stop the runtime, edit the config
+  privately, and rerun file-based setup using `--non-interactive` or an explicit
+  `--config`. UUIDs, queues, tenants, and keys are preserved.
+- The wizard creates regular workers. An advanced file-based config may set
+  `"role": "synthesis"` for at most one dot and must retain at least one worker.
+- Existing installations reject added/removed dots, changed tunnels or roles,
+  and replacement keys pending a separate migration/rotation procedure. Do not
+  delete state to bypass those checks.
+- Internal tokens expire after 30 days and are not renewed automatically.
+- Actual dot execution, Events connections, and result delivery require
+  separate validation.
 
-See the [key configuration guide](private-key-config.md) for storage and reset
+See the [key configuration guide](private-key-config.md) for storage and recovery
 precautions, and the [runtime guide](persistent-runtime.md) for operational and
-recovery limits.
+hosting limits.

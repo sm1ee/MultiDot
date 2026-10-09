@@ -3,21 +3,36 @@
 For a new installation, use the [quick setup guide](simple-setup.md):
 
 ```sh
-python3 scripts/multidot.py init
-# Edit ~/.multidot/config.json yourself in a trusted private editor.
 python3 scripts/multidot.py setup
+# Run separately after approving service execution and tunnel connections.
 python3 scripts/multidot.py run
 ```
 
+`setup` opens an interactive wizard. Enter a name, an existing tunnel ID, and a
+hidden runtime API key for each dot; choose whether to add another dot
+(default: no). There is no fixed dot count. New users do not need to run `init`
+or manually edit JSON. The wizard creates regular workers and requires a
+terminal that supports hidden key entry. It refuses non-terminal input and
+does not fall back to displaying the key.
+
+The wizard collects the full configuration before writing it. One final
+`Save and prepare local setup? [y/N]` confirmation explains the config and state
+destinations, plaintext key storage, and local internal credential creation.
+The default answer is no. Approval saves a complete private config, then runs
+local preparation; it does not authorize or start tunnel connections.
+
 The preferred config is a list of dots, each with just `name`, `tunnel_id` and
 `runtime_api_key`. The public [template](../config/dots.example.json) has blank
-values. `init` creates an owner-only 0600 private file and refuses to overwrite
-an existing file. At the default location it creates a missing `~/.multidot`
-directory with 0700 permissions, but never creates the user's home directory.
-Unsafe or symlinked existing application directories are refused; existing
-directory permissions are not changed. Roles are optional: `worker` is the
-default and at most one entry may be `synthesis`, alongside at least one regular
-worker.
+values. The wizard may fill the reviewed blank template created by `init`, but
+refuses a populated existing config without changing it. `init` remains an
+optional blank-template command and never overwrites an existing file.
+
+Private configs use owner-only 0600 permissions. At the default location, a
+missing `~/.multidot` directory is created with 0700 permissions, but the user's
+home directory is never created. Unsafe or symlinked existing application
+directories are refused; existing directory permissions are not changed.
+Advanced file-based configs may include a role: `worker` is the default and at
+most one entry may be `synthesis`, alongside at least one regular worker.
 
 The default user config is `~/.multidot/config.json`; generated runtime
 configuration, databases and credentials live under `~/.multidot/state/`.
@@ -45,9 +60,43 @@ list determines the dot count; fixed A/B/C names and counts are not required.
 Config byte limits and host resources still bound the installation.
 
 The intended deployment remains **dot's own cloud runtime**, not the user's
-Mac. A supported way for the user to privately edit its files has not yet been
-verified. No real setup or tunnel connection has run. This guide does not
-resolve that access requirement.
+Mac. A supported private terminal/input route for the user into that runtime
+has not yet been verified. A native terminal and an executor may have different
+home directories and PID/network namespaces. Creating a blank config in one
+does not prove private access or runtime readiness in the other. No real wizard
+setup or tunnel connection has run. This guide does not resolve that access
+requirement.
+
+## Interactive and file-based setup
+
+- `setup` opens the wizard at the default private config path.
+- `setup --non-interactive` loads an existing default config without prompts.
+- `setup --config /ABS/PATH/dots.private.json` preserves the non-interactive
+  file-based flow for an explicit path.
+- `setup --interactive --config /ABS/PATH/dots.private.json` chooses the wizard
+  with a custom private destination.
+
+`--interactive` and `--non-interactive` are mutually exclusive. A file-based
+setup requires prior authorization for local credential creation. An existing
+populated config is reused through this mode, not overwritten by the wizard.
+The optional `init` command creates only a blank template for a file workflow;
+it does not issue credentials or run setup.
+
+Do not edit or replace the destination while a wizard is open. Its advisory
+lock coordinates cooperating wizard processes only; it cannot prevent a
+separate editor or other same-user process from writing. Concurrent editing is
+unsupported, even when the destination was initially a blank template.
+
+Declining or canceling before config publication leaves the destination
+unchanged and retains no secret temporary file during normal cleanup. Once
+published, the complete private config remains if later local setup fails;
+errors report fixed codes without printing entered values. After resolving the
+problem, retry that saved config with `setup --non-interactive` or an explicit
+`--config`, rather than entering the keys again. Config saving and runtime
+state publication are separate steps, not one all-or-nothing transaction.
+SIGKILL, abrupt process death, or host loss cannot guarantee temporary-file
+cleanup or publication durability. Review the stopped installation privately
+before retrying an uncertain result.
 
 ## Which external key goes here?
 
@@ -83,9 +132,9 @@ state and credentials; it does not download software, start services, create
 OpenAI tunnels or authenticate any remote account.
 
 A fresh installation gets stable UUID-based queue/worker IDs and a tenant,
-recorded in its private manifest. On a stopped installation, setup matches
-entries by tunnel ID, so display-name edits and list reordering preserve those
-identities, queues, keys and queued work. On such a rerun a blank
+recorded in its private manifest. On a stopped installation, file-based setup
+matches entries by tunnel ID, so display-name edits and list reordering preserve
+those identities, queues, keys and queued work. On such a rerun a blank
 `runtime_api_key` reuses the installed value; a supplied key must match the
 recorded key fingerprint. Existing secret-file reuse checks metadata, not remote
 validity. Missing or unsafe state is refused rather than silently rebuilt.
@@ -108,10 +157,13 @@ repairs them without reissuing identities or tokens.
 ## Plaintext and handling limits
 
 Private JSON and generated key files are **plaintext, not a secrets vault**.
-Anyone with access to the OS account, privileged processes, editor recovery
-files or backups may obtain them. Setup does not erase the filled JSON or editor
-history. Use a trusted editor without cloud sync/shared backups, and preserve
-0600 permissions after saving. Generated private directories use 0700.
+Hidden terminal entry avoids displaying the key; it does not encrypt storage
+or isolate the OS account. Anyone with access to that account, privileged
+processes, recovery files, or backups may obtain the keys. Setup does not erase
+the filled JSON. Use a trusted private terminal without shared session
+recording. For advanced file edits, use a trusted editor without cloud
+sync/shared backups and preserve 0600 permissions after saving; setup does not
+erase editor history. Generated private directories use 0700.
 
 Private `*.private.json`, `*.local.json`, common editor backup/swap files and
 `secrets/` trees are Git-ignored. Ignore rules are not encryption, do not protect

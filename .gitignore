@@ -20,6 +20,7 @@ secrets/
 encryption.key
 MultiDot-state/
 .multidot/
+.multidot-config-*.pending
 config/private*.json
 config/*.private.json
 config/*.local.json

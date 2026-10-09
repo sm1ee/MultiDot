@@ -138,7 +138,11 @@ def read_private_json(path, maximum=262144):
 
 
 def load_dots(path):
-    spec = read_private_json(path)
+    return validate_dots(read_private_json(path))
+
+
+def validate_dots(spec):
+    """Validate an in-memory candidate without writing or displaying values."""
     if not isinstance(spec, dict) or set(spec) != {"schema_version", "dots"} or type(spec["schema_version"]) is not int or spec["schema_version"] != 1:
         raise SetupError("invalid_config")
     if not isinstance(spec["dots"], list) or not spec["dots"]:

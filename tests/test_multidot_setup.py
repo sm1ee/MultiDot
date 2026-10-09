@@ -203,7 +203,7 @@ class GenericSetupTests(unittest.TestCase):
                 patch.object(setup, "provision_stage", self.fake_provision), \
                 patch.object(setup, "choose_ports", return_value=[30100, 30101, 30102]), \
                 redirect_stdout(StringIO()) as output:
-            self.assertEqual(entry.main(["setup"]), 0)
+            self.assertEqual(entry.main(["setup", "--non-interactive"]), 0)
         self.assertTrue(json.loads(output.getvalue())["ok"])
         self.assertEqual(self.provision_calls, 1)
         self.assertTrue((self.home / ".multidot/state/config/runtime.json").is_file())
