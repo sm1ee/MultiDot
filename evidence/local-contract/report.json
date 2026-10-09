@@ -1,0 +1,500 @@
+{
+  "classification": "LOCAL_CONTRACT",
+  "started_at": "2026-10-09T03:21:41.098579+00:00",
+  "finished_at": "2026-10-09T03:21:46.171419+00:00",
+  "python": "3.12.14",
+  "upstream_executed": true,
+  "upstream": {
+    "repository": "https://github.com/Pluviobyte/dot2api",
+    "commit": "66a761505ff73c5dca730260efcaeb5697db81ad",
+    "tree": "e83f79db4097321b6cf892935ba85f28a76aaa47",
+    "lock_sha256": "b233641bbb90ce6ebd1a9fedb82bc4fd9afcfc6837c496ea3e085a37bf8582be",
+    "pyproject_sha256": "fe2a2a0861b8f104352cfab8d3105a2f21e79d638c98b94c6cc96be030bfd6e0",
+    "license_sha256": "a34635a1a625232a2a14a66870a9d3e67bf11ee0887b8e43ce6dce62aaceb3ee",
+    "version": "0.1.0",
+    "license": "MIT",
+    "checkout_clean": true,
+    "all_installed_versions_match_lock": true,
+    "packages": {
+      "annotated-doc": "0.0.5",
+      "annotated-types": "0.8.0",
+      "anyio": "4.15.1",
+      "cffi": "2.1.1",
+      "click": "8.5.0",
+      "cryptography": "50.0.2",
+      "dot2api": "0.1.0",
+      "fastapi": "0.142.2",
+      "h11": "0.16.0",
+      "idna": "3.20",
+      "opentelemetry-api": "1.45.0",
+      "pycparser": "3.0",
+      "pydantic": "2.13.5",
+      "pydantic-core": "2.46.5",
+      "starlette": "1.7.0",
+      "typing-extensions": "4.16.0",
+      "typing-inspection": "0.4.4",
+      "uvicorn": "0.54.0"
+    }
+  },
+  "tests_run": 21,
+  "passed": true,
+  "tests": [
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_actual_auth_missing_and_unknown_task_errors",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:41.303765+00:00",
+      "seconds": 0.255776,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_actual_empty_413_guard_and_adapter_mapping",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:41.559640+00:00",
+      "seconds": 0.414678,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_ascii_normalized_size_exact_native_boundary",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:41.974377+00:00",
+      "seconds": 0.215309,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_cancel_idempotent_and_fences_leased_completion",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:42.189745+00:00",
+      "seconds": 0.214322,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_complete_same_principal_lease_result_is_idempotent",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:42.404122+00:00",
+      "seconds": 0.212772,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_controller_lost_post_response_retries_exact_pinned_creator",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:42.616948+00:00",
+      "seconds": 0.212697,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_controller_native_cancel_releases_slot_without_worker_stop_claim",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:42.829700+00:00",
+      "seconds": 0.213017,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_controller_restart_accepts_native_result_and_preserves_unverified_identity",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:43.042769+00:00",
+      "seconds": 0.214049,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_controller_uncertain_get_retains_slot_then_reconciles",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:43.256874+00:00",
+      "seconds": 0.213576,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_create_get_native_envelope_and_identity_omission",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:43.470505+00:00",
+      "seconds": 0.21244,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_fault_injected_response_errors_fail_closed",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:43.683023+00:00",
+      "seconds": 0.213355,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_fault_injected_uncertain_read_and_recovery",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:43.896429+00:00",
+      "seconds": 0.314605,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_heartbeat_same_revision_capped_by_task_deadline",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:44.211089+00:00",
+      "seconds": 0.214624,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_idempotency_is_bound_to_verified_tenant_and_creator",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:44.425770+00:00",
+      "seconds": 0.217743,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_korean_ascii_escaping_and_adapter_safe_size_boundary",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:44.643571+00:00",
+      "seconds": 0.212213,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_list_native_tool_uses_sequence_pagination",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:44.855837+00:00",
+      "seconds": 0.21263,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_max_attempts_one_lease_boundary_with_injected_clock",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:45.068522+00:00",
+      "seconds": 0.212653,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_queue_tenant_creator_acl_and_scope_rejections",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:45.281232+00:00",
+      "seconds": 0.213406,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_release_cannot_retry_with_one_attempt",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:45.494709+00:00",
+      "seconds": 0.215057,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_same_key_body_reuses_task_and_changed_body_conflicts",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:45.709822+00:00",
+      "seconds": 0.215145,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_native_contract.NativeContractTests.test_validation_422_is_sanitized_and_adapter_preserves_status",
+      "classification": "LOCAL_CONTRACT",
+      "started_at": "2026-10-09T03:21:45.925021+00:00",
+      "seconds": 0.213646,
+      "result": "PASS",
+      "error_type": null
+    }
+  ],
+  "source_sha256": {
+    "src/multidot/__init__.py": "86f9bd739b6312f59743084d9d9c68869ed21dcee0ddcc1a975644dc35101d1e",
+    "src/multidot/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "src/multidot/cli.py": "67ec0b276864da51ca3d64f8f91b82c83da9b318d2f75195af840eb679d05e18",
+    "src/multidot/controller.py": "10ea97a098f10eeee5dad15976ffe9f3ae02f0c9874786acd82ff0e9e4c84897",
+    "src/multidot/dot2api_adapter.py": "8185295fd215e9258c90bc4eec2c86ef47afe945632950135170de0a46b3ff77",
+    "src/multidot/mock.py": "f9ba0990ab573b875d71a382d35eb7799da3254083873e148c9d00df1b8e7d82",
+    "src/multidot/models.py": "229c0532335ae3967acbc98bf5e38e55beccbe7fea3728d2654dad28c4ca0462",
+    "src/multidot/storage.py": "05f8a61874f896609cbd4086236391157abdd0c4180aa3ba76895ae4d9b1f260",
+    "tests_local_contract/native_fixture.py": "9b17ce3cdcfce1ffda90a8bb29e3b05e4048f9fb28d94bc856e13a124ded13fa",
+    "tests_local_contract/test_native_contract.py": "ccd8d2e4b2d4793ce391cb951a7343971c5d6cb0c20c4a9d063abade37fb5aba",
+    "scripts/run_local_contract.py": "9b71b05b879c1d409848e46ad9aa5db4452fc35a1d743a22b8ad21fb1d4d576e"
+  },
+  "transport": "Actual uvicorn/FastAPI loopback HTTP; client and server in the same process namespace",
+  "identities": [
+    {
+      "principal": "contract-producer",
+      "tenant": "contract-tenant",
+      "queues": [
+        "dot-a",
+        "dot-b",
+        "dot-c"
+      ],
+      "scopes": [
+        "read",
+        "submit"
+      ]
+    },
+    {
+      "principal": "contract-peer",
+      "tenant": "contract-tenant",
+      "queues": [
+        "dot-a",
+        "dot-b",
+        "dot-c"
+      ],
+      "scopes": [
+        "read",
+        "submit"
+      ]
+    },
+    {
+      "principal": "contract-worker-b",
+      "tenant": "contract-tenant",
+      "queues": [
+        "dot-b"
+      ],
+      "scopes": [
+        "read",
+        "work"
+      ]
+    },
+    {
+      "principal": "contract-worker-b-peer",
+      "tenant": "contract-tenant",
+      "queues": [
+        "dot-b"
+      ],
+      "scopes": [
+        "read",
+        "work"
+      ]
+    },
+    {
+      "principal": "contract-worker-c",
+      "tenant": "contract-tenant",
+      "queues": [
+        "dot-c"
+      ],
+      "scopes": [
+        "read",
+        "work"
+      ]
+    },
+    {
+      "principal": "contract-outsider",
+      "tenant": "contract-other-tenant",
+      "queues": [
+        "dot-b"
+      ],
+      "scopes": [
+        "read",
+        "submit",
+        "work"
+      ]
+    }
+  ],
+  "identity_binding": "Fixture Security.authenticate verifies each temporary token's actual tenant/creator before retry tests; public task still omits principals",
+  "fixture_methods": "Official initialize, Security.create_principal/issue_token/authenticate; injected Service/Security test clock; no upstream SQL in controller or harness",
+  "credentials": "Ephemeral test-marked fixture tokens and temporary encryption key; never logged; fixture directories removed",
+  "fault_injection": "Selected responses replaced or delayed only after actual upstream execution; named fault cases are synthetic transport faults",
+  "lease_evidence": "Clock-injected exact-boundary tests, not real elapsed-time or real-worker evidence",
+  "controller_database_separate": true,
+  "background_worker_enabled": false,
+  "external_transport_calls": 0,
+  "cleanup_verified": true,
+  "fixtures": [
+    {
+      "at": "2026-10-09T03:21:41.559372+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:41.801749+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:41.974224+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:42.189573+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:42.403944+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:42.616814+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:42.829532+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": [
+        "503_after_commit"
+      ]
+    },
+    {
+      "at": "2026-10-09T03:21:43.042634+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:43.256734+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:43.470370+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": [
+        "503_after_commit"
+      ]
+    },
+    {
+      "at": "2026-10-09T03:21:43.682859+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:43.896293+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": [
+        "invalid_json",
+        "oversized_response",
+        "503_after_commit"
+      ]
+    },
+    {
+      "at": "2026-10-09T03:21:44.210948+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": [
+        "timeout"
+      ]
+    },
+    {
+      "at": "2026-10-09T03:21:44.425625+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:44.643395+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:44.855701+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:45.068381+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:45.281066+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:45.494529+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:45.709677+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:45.924882+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    },
+    {
+      "at": "2026-10-09T03:21:46.138364+00:00",
+      "server_stopped": true,
+      "loopback_listener_closed": true,
+      "temporary_state_removed": true,
+      "external_transport_calls": 0,
+      "fault_modes": []
+    }
+  ],
+  "real_dot": "NOT_TESTED / NEEDS_USER_ACTION",
+  "events": "NOT_TESTED",
+  "public_service_or_tunnel": false,
+  "persistent_access_created": false,
+  "no_upstream_implementation_vendored": true
+}

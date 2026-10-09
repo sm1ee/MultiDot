@@ -1,0 +1,713 @@
+{
+  "classification": "MOCK",
+  "target_version": "0.1.0",
+  "upstream_commit": "66a761505ff73c5dca730260efcaeb5697db81ad",
+  "upstream_executed": false,
+  "python": "3.12.14",
+  "ran_at": "2026-10-09T03:23:21.013243+00:00",
+  "tests_run": 62,
+  "passed": true,
+  "tests": [
+    {
+      "test_name": "test_cli.CLITests.test_auth_rejection_stops_reads_immediately",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:16.701721+00:00",
+      "seconds": 0.00459,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_cli.CLITests.test_observation_retry_is_bounded",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:16.706337+00:00",
+      "seconds": 0.003224,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_cli.CLITests.test_offline_create_and_cancel",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:16.709580+00:00",
+      "seconds": 0.008444,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_cli.CLITests.test_recovery_flags_are_exclusive",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:16.718044+00:00",
+      "seconds": 0.001615,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_cli.CLITests.test_start_single_instance_and_owned_graceful_stop",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:16.719675+00:00",
+      "seconds": 1.064365,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_dependency_cycle_rejected",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.784131+00:00",
+      "seconds": 0.001502,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_observed_progress_never_invented",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.785653+00:00",
+      "seconds": 0.002179,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_snapshot_immutability",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.787854+00:00",
+      "seconds": 0.001001,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_stale_revision_does_not_overwrite_result",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.788873+00:00",
+      "seconds": 0.003032,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t02_mock_b_roundtrip_and_durable_artifact",
+      "test_ids": [
+        "t02"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.791927+00:00",
+      "seconds": 0.00281,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t04_mock_cross_queue_acl",
+      "test_ids": [
+        "t04"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.794762+00:00",
+      "seconds": 0.001838,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t05_mock_worker_cannot_submit_or_producer_claim",
+      "test_ids": [
+        "t05"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.796655+00:00",
+      "seconds": 0.002052,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t06_duplicate_job_and_attempt",
+      "test_ids": [
+        "t06"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.798729+00:00",
+      "seconds": 0.002715,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t07_request_key_conflict",
+      "test_ids": [
+        "t07"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.801466+00:00",
+      "seconds": 0.001223,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t07_upstream_key_conflict",
+      "test_ids": [
+        "t07"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.802707+00:00",
+      "seconds": 0.001931,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t08_intent_persisted_before_network",
+      "test_ids": [
+        "t08"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.804658+00:00",
+      "seconds": 0.002079,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t08_response_loss_reuses_exact_intent",
+      "test_ids": [
+        "t08"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.806754+00:00",
+      "seconds": 0.002136,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t09_t15_synthesis_dedupes_exact_results",
+      "test_ids": [
+        "t09",
+        "t15"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.808911+00:00",
+      "seconds": 0.007778,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t10_missing_required_artifact_rejected",
+      "test_ids": [
+        "t10"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.816727+00:00",
+      "seconds": 0.002582,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t10_unknown_schema_and_external_changes_rejected",
+      "test_ids": [
+        "t10"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.819331+00:00",
+      "seconds": 0.003556,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t10_wrong_snapshot_rejected",
+      "test_ids": [
+        "t10"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.822911+00:00",
+      "seconds": 0.002446,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t11_expired_lease_cannot_complete",
+      "test_ids": [
+        "t11"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.825380+00:00",
+      "seconds": 0.002697,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t11_heartbeat_same_revision_is_observed",
+      "test_ids": [
+        "t11"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.828100+00:00",
+      "seconds": 0.002261,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t12_recover_dry_run_does_not_send",
+      "test_ids": [
+        "t12"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.830382+00:00",
+      "seconds": 0.002157,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t12_restart_recovers_existing_id",
+      "test_ids": [
+        "t12"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.832561+00:00",
+      "seconds": 0.003145,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t13_disconnect_retains_slot_then_recovers",
+      "test_ids": [
+        "t13"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.835728+00:00",
+      "seconds": 0.002702,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t16_delivery_not_inferred_from_completion",
+      "test_ids": [
+        "t16"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.838451+00:00",
+      "seconds": 0.002878,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t17_cancel_never_sent",
+      "test_ids": [
+        "t17"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.841353+00:00",
+      "seconds": 0.001957,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t17_cancel_running_blocks_followup",
+      "test_ids": [
+        "t17"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.843330+00:00",
+      "seconds": 0.002669,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t17_cancel_uncertain_submission_retains_slot",
+      "test_ids": [
+        "t17"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.846021+00:00",
+      "seconds": 0.00205,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t18_partial_success_preserved",
+      "test_ids": [
+        "t18"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.848092+00:00",
+      "seconds": 0.003668,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t20_recursive_synthesis_job_rejected",
+      "test_ids": [
+        "t20"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.851786+00:00",
+      "seconds": 0.000999,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t21_credentials_rejected_and_redacted",
+      "test_ids": [
+        "t21"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.852811+00:00",
+      "seconds": 0.000944,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t21_output_path_rejected_without_file_creation",
+      "test_ids": [
+        "t21"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.853773+00:00",
+      "seconds": 0.002502,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t21_path_traversal_and_absolute_name_rejected",
+      "test_ids": [
+        "t21"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.856296+00:00",
+      "seconds": 0.001055,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t22_auth_and_limit_errors_do_not_failover",
+      "test_ids": [
+        "t22"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.857369+00:00",
+      "seconds": 0.002373,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t23_oversized_input_rejected",
+      "test_ids": [
+        "t23"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.859763+00:00",
+      "seconds": 0.001713,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t23_oversized_output_rejected",
+      "test_ids": [
+        "t23"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.861494+00:00",
+      "seconds": 0.003271,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t23_upstream_escaped_unicode_limit",
+      "test_ids": [
+        "t23"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.864789+00:00",
+      "seconds": 0.00101,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_t24_concurrent_reservations_never_exceed_one",
+      "test_ids": [
+        "t24"
+      ],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.865817+00:00",
+      "seconds": 0.040459,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_target_change_never_resends",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.906323+00:00",
+      "seconds": 0.001846,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_terminal_mutation_needs_review_preserves_result",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.908189+00:00",
+      "seconds": 0.003465,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_controller.ControllerTests.test_unauthorized_project_and_unknown_fields",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.911681+00:00",
+      "seconds": 0.001137,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_http_adapter.HTTPAdapterTests.test_empty_408_is_uncertain",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:17.912869+00:00",
+      "seconds": 0.505375,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_http_adapter.HTTPAdapterTests.test_empty_413_is_handled_without_echo",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:18.418382+00:00",
+      "seconds": 0.50317,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_http_adapter.HTTPAdapterTests.test_insecure_remote_and_embedded_credentials_rejected",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:18.921658+00:00",
+      "seconds": 0.501259,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_http_adapter.HTTPAdapterTests.test_native_paths_and_no_proxy_api",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:19.422996+00:00",
+      "seconds": 0.505022,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_http_adapter.HTTPAdapterTests.test_non_json_and_oversized_responses_fail_closed",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:19.928098+00:00",
+      "seconds": 0.503672,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_http_adapter.HTTPAdapterTests.test_redirect_never_forwards_credentials",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.431843+00:00",
+      "seconds": 0.503004,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_atomic_concurrent_reservation_cap",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.934965+00:00",
+      "seconds": 0.044491,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_cancel_before_send_blocks_all_future_dispatch",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.979557+00:00",
+      "seconds": 0.002467,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_cancellation_after_completion_preserves_successful_terminal_state",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.982091+00:00",
+      "seconds": 0.00341,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_crash_during_fifth_send_recovers_to_review_without_sixth_send",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.985512+00:00",
+      "seconds": 0.002507,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_delayed_final_submit_error_cannot_downgrade_confirmed_completion",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.988048+00:00",
+      "seconds": 0.002635,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_delayed_read_error_cannot_downgrade_concurrent_terminal_result",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.990698+00:00",
+      "seconds": 0.003375,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_limit_error_does_not_fail_over_accounts",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.994095+00:00",
+      "seconds": 0.002173,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_request_and_snapshot_immutability",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.996287+00:00",
+      "seconds": 0.001375,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_stale_observation_and_required_artifact",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:20.997682+00:00",
+      "seconds": 0.002978,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_synthesis_once_for_accepted_versions",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:21.000686+00:00",
+      "seconds": 0.002636,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_terminal_state_is_fenced_under_concurrent_observation",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:21.003345+00:00",
+      "seconds": 0.002661,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_uncertain_submission_retry_preserves_exact_body_and_slot",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:21.006026+00:00",
+      "seconds": 0.002802,
+      "result": "PASS",
+      "error_type": null
+    },
+    {
+      "test_name": "test_independent_regressions.Independent.test_unexpected_upstream_cancellation_does_not_look_unstarted",
+      "test_ids": [],
+      "classification": "MOCK",
+      "target_version": "0.1.0",
+      "run_at": "2026-10-09T03:23:21.008848+00:00",
+      "seconds": 0.002731,
+      "result": "PASS",
+      "error_type": null
+    }
+  ],
+  "source_sha256": {
+    "src/multidot/__init__.py": "86f9bd739b6312f59743084d9d9c68869ed21dcee0ddcc1a975644dc35101d1e",
+    "src/multidot/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "src/multidot/cli.py": "67ec0b276864da51ca3d64f8f91b82c83da9b318d2f75195af840eb679d05e18",
+    "src/multidot/controller.py": "10ea97a098f10eeee5dad15976ffe9f3ae02f0c9874786acd82ff0e9e4c84897",
+    "src/multidot/dot2api_adapter.py": "8185295fd215e9258c90bc4eec2c86ef47afe945632950135170de0a46b3ff77",
+    "src/multidot/mock.py": "f9ba0990ab573b875d71a382d35eb7799da3254083873e148c9d00df1b8e7d82",
+    "src/multidot/models.py": "229c0532335ae3967acbc98bf5e38e55beccbe7fea3728d2654dad28c4ca0462",
+    "src/multidot/storage.py": "05f8a61874f896609cbd4086236391157abdd0c4180aa3ba76895ae4d9b1f260",
+    "tests/test_cli.py": "04b732b8d864f1cf8b6b4fea0afa28051010744dda6cbfaee0d55b7016969c9c",
+    "tests/test_controller.py": "716d0f886886268f288a99304146ec3a24f3f3312b77d2bb2b8a53a97cc5307e",
+    "tests/test_http_adapter.py": "059c5220127c4eeef787ad6f3ea5140f224c5712a9d303c9cbc0281babe90eb0",
+    "tests/test_independent_regressions.py": "d6868f0c0537455255d4cfe77384332881ba5e1e22f3bc84a0b822c5f00551d0",
+    "scripts/check.py": "8f495613dcccf53a75c7f15b147b2e115ea9d327a45376e9d2c35b443f2bf3c3",
+    "scripts/run_local_contract.py": "9b71b05b879c1d409848e46ad9aa5db4452fc35a1d743a22b8ad21fb1d4d576e"
+  },
+  "local_contract": "NOT_TESTED",
+  "real_dot": "NEEDS_USER_ACTION"
+}

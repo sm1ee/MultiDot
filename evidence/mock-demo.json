@@ -1,0 +1,303 @@
+{
+  "classification": "MOCK",
+  "version": "0.1.0",
+  "ran_at": "2026-10-09T03:05:58.371217+00:00",
+  "milestones": [
+    {
+      "worker": "dot-b",
+      "task_id": "task-mock-1",
+      "state": "ACTIVE",
+      "classification": "MOCK"
+    },
+    {
+      "worker": "dot-c",
+      "task_id": "task-mock-2",
+      "state": "SYNTHESIZING",
+      "classification": "MOCK"
+    }
+  ],
+  "job": {
+    "id": "job-6d5f3c1a21394825b9accdd45e73c7f0",
+    "project_id": "demo",
+    "request_id": "demo-run",
+    "requester": "controller-a",
+    "spec": {
+      "goal": "Exercise stored data flow without real accounts",
+      "input_snapshot_id": "demo-v1",
+      "policy_id": "provided-materials-only",
+      "project_id": "demo",
+      "request_id": "demo-run",
+      "schema_version": "multidot.job.v1",
+      "steps": [
+        {
+          "acceptance_criteria": [
+            "Evidence"
+          ],
+          "depends_on": [],
+          "instructions": "Review material",
+          "step_id": "b-review",
+          "worker": "dot-b"
+        },
+        {
+          "acceptance_criteria": [
+            "Gaps"
+          ],
+          "depends_on": [],
+          "instructions": "Independently review material",
+          "step_id": "c-review",
+          "worker": "dot-c"
+        }
+      ],
+      "synthesis": {
+        "instructions": "Compare exact accepted results",
+        "trigger": "all_required_steps_accepted",
+        "worker": "dot-a"
+      },
+      "title": "MOCK B then C then A"
+    },
+    "hash": "02752808ad829e63919c75d7082112700a22cc9f573ea99b8a7d629426cd04f5",
+    "snapshot_hash": "de927196edba9c7f964102dcc129e0b3a0865428c506231fc50885f2b2292f84",
+    "state": "COMPLETED",
+    "cancel_requested_at": null,
+    "cancel_reason": null,
+    "delivery": "notification_pending",
+    "presentation_ref": null,
+    "created_at": "2026-10-09T03:05:58.365671+00:00",
+    "updated_at": "2026-10-09T03:05:58.370522+00:00",
+    "steps": [
+      {
+        "job_id": "job-6d5f3c1a21394825b9accdd45e73c7f0",
+        "id": "b-review",
+        "worker": "dot-b",
+        "kind": "analysis",
+        "spec": {
+          "acceptance_criteria": [
+            "Evidence"
+          ],
+          "depends_on": [],
+          "instructions": "Review material",
+          "step_id": "b-review",
+          "worker": "dot-b"
+        },
+        "state": "ACCEPTED",
+        "result": {
+          "artifacts": [
+            {
+              "content": "MOCK analysis of provided material",
+              "media_type": "text/markdown",
+              "name": "report.md"
+            }
+          ],
+          "checks": [
+            {
+              "evidence_ref": "brief.md",
+              "name": "MOCK envelope fixture",
+              "status": "passed"
+            }
+          ],
+          "external_changes": [],
+          "findings": [
+            {
+              "claim": "MOCK fixture only; no real Dot ran",
+              "evidence_ref": "brief.md"
+            }
+          ],
+          "input_snapshot_id": "demo-v1",
+          "job_id": "job-6d5f3c1a21394825b9accdd45e73c7f0",
+          "open_questions": [
+            "Real Dot execution and authentication are unverified."
+          ],
+          "outcome": "completed",
+          "schema_version": "multidot.result.v1",
+          "step_id": "b-review",
+          "summary": "MOCK analysis of provided material"
+        },
+        "result_hash": "07e6e6b1d7e8fc063f3f045b8073b525dac457ca81bc8fbfde59c2d42d0c6314",
+        "error_code": null,
+        "synthesis_version": null,
+        "attempts": [
+          {
+            "id": "attempt-4446f1c418714596bf865beab216c832",
+            "worker": "dot-b",
+            "upstream_id": "task-mock-1",
+            "upstream_status": "completed",
+            "revision": 3,
+            "lease_expires_at": null,
+            "observed_at": "2026-10-09T03:05:58.367734+00:00",
+            "body_hash": "e16be113dc3640962bf933175a09e8ab8f46ad14549fbd5e0bd6e1ed7faf3c3f"
+          }
+        ]
+      },
+      {
+        "job_id": "job-6d5f3c1a21394825b9accdd45e73c7f0",
+        "id": "c-review",
+        "worker": "dot-c",
+        "kind": "analysis",
+        "spec": {
+          "acceptance_criteria": [
+            "Gaps"
+          ],
+          "depends_on": [],
+          "instructions": "Independently review material",
+          "step_id": "c-review",
+          "worker": "dot-c"
+        },
+        "state": "ACCEPTED",
+        "result": {
+          "artifacts": [
+            {
+              "content": "MOCK analysis of provided material",
+              "media_type": "text/markdown",
+              "name": "report.md"
+            }
+          ],
+          "checks": [
+            {
+              "evidence_ref": "brief.md",
+              "name": "MOCK envelope fixture",
+              "status": "passed"
+            }
+          ],
+          "external_changes": [],
+          "findings": [
+            {
+              "claim": "MOCK fixture only; no real Dot ran",
+              "evidence_ref": "brief.md"
+            }
+          ],
+          "input_snapshot_id": "demo-v1",
+          "job_id": "job-6d5f3c1a21394825b9accdd45e73c7f0",
+          "open_questions": [
+            "Real Dot execution and authentication are unverified."
+          ],
+          "outcome": "completed",
+          "schema_version": "multidot.result.v1",
+          "step_id": "c-review",
+          "summary": "MOCK analysis of provided material"
+        },
+        "result_hash": "6da7b4899c2cd3adb2f8d1a41cecdbe5493c6c6baa04e2080164ec4c9a3d86fa",
+        "error_code": null,
+        "synthesis_version": null,
+        "attempts": [
+          {
+            "id": "attempt-9c04b682bcca4c4c9f30d12c48f607e3",
+            "worker": "dot-c",
+            "upstream_id": "task-mock-2",
+            "upstream_status": "completed",
+            "revision": 3,
+            "lease_expires_at": null,
+            "observed_at": "2026-10-09T03:05:58.368855+00:00",
+            "body_hash": "44b495d3e77c51333cae2b85c0c5cf42e941b9bbb771f589823f5646b8ba5f94"
+          }
+        ]
+      },
+      {
+        "job_id": "job-6d5f3c1a21394825b9accdd45e73c7f0",
+        "id": "synthesis",
+        "worker": "dot-a",
+        "kind": "synthesis",
+        "spec": {
+          "acceptance_criteria": [
+            "Compare actual results, evidence, disagreements, and unknowns"
+          ],
+          "depends_on": [
+            "b-review",
+            "c-review"
+          ],
+          "instructions": "Compare exact accepted results",
+          "required_artifacts": [
+            "synthesis.md"
+          ],
+          "step_id": "synthesis",
+          "worker": "dot-a"
+        },
+        "state": "ACCEPTED",
+        "result": {
+          "artifacts": [
+            {
+              "content": "MOCK analysis of provided material",
+              "media_type": "text/markdown",
+              "name": "synthesis.md"
+            }
+          ],
+          "checks": [
+            {
+              "evidence_ref": "brief.md",
+              "name": "MOCK envelope fixture",
+              "status": "passed"
+            }
+          ],
+          "external_changes": [],
+          "findings": [
+            {
+              "claim": "MOCK fixture only; no real Dot ran",
+              "evidence_ref": "brief.md"
+            }
+          ],
+          "input_snapshot_id": "demo-v1",
+          "job_id": "job-6d5f3c1a21394825b9accdd45e73c7f0",
+          "open_questions": [
+            "Real Dot execution and authentication are unverified."
+          ],
+          "outcome": "completed",
+          "schema_version": "multidot.result.v1",
+          "step_id": "synthesis",
+          "summary": "MOCK analysis of provided material"
+        },
+        "result_hash": "4948ee7641e7a27d8347470df7d173a4d0ce899465e05c842b49cdb3ff91e578",
+        "error_code": null,
+        "synthesis_version": "e5e64af7a87fdb628ee980e90468ee7482012afb8f3e072ab1f56a5f2cad6e04",
+        "attempts": [
+          {
+            "id": "attempt-b65b873ec123476aa5b506477440c0f9",
+            "worker": "dot-a",
+            "upstream_id": "task-mock-3",
+            "upstream_status": "completed",
+            "revision": 3,
+            "lease_expires_at": null,
+            "observed_at": "2026-10-09T03:05:58.370464+00:00",
+            "body_hash": "f0e0fee5e7bd1b077b708dbdbea9ca9ed187d5790da64d17a5d67cc97ec4c3f9"
+          }
+        ]
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "artifact-b6fecec75c7465e2cc8302f4df3c1cd6306e1fd5b9738e93f41747bc0703df49",
+        "step_id": "b-review",
+        "name": "report.md",
+        "media_type": "text/markdown",
+        "size": 34,
+        "hash": "5cf153841a1300337cd0eeb7d8197c868cdad681068851a58a58f43ef85fa414",
+        "snapshot_hash": "de927196edba9c7f964102dcc129e0b3a0865428c506231fc50885f2b2292f84",
+        "result_hash": "07e6e6b1d7e8fc063f3f045b8073b525dac457ca81bc8fbfde59c2d42d0c6314"
+      },
+      {
+        "id": "artifact-0ca47ab125aa0dce4e4ad5434f70fa874e784e490581dec8ed0b69f0e96bfaf8",
+        "step_id": "c-review",
+        "name": "report.md",
+        "media_type": "text/markdown",
+        "size": 34,
+        "hash": "5cf153841a1300337cd0eeb7d8197c868cdad681068851a58a58f43ef85fa414",
+        "snapshot_hash": "de927196edba9c7f964102dcc129e0b3a0865428c506231fc50885f2b2292f84",
+        "result_hash": "6da7b4899c2cd3adb2f8d1a41cecdbe5493c6c6baa04e2080164ec4c9a3d86fa"
+      },
+      {
+        "id": "artifact-75888827cc47bc854a24077aeb99ca423c26629477a6a2685186fa88f426f1b6",
+        "step_id": "synthesis",
+        "name": "synthesis.md",
+        "media_type": "text/markdown",
+        "size": 34,
+        "hash": "5cf153841a1300337cd0eeb7d8197c868cdad681068851a58a58f43ef85fa414",
+        "snapshot_hash": "de927196edba9c7f964102dcc129e0b3a0865428c506231fc50885f2b2292f84",
+        "result_hash": "4948ee7641e7a27d8347470df7d173a4d0ce899465e05c842b49cdb3ff91e578"
+      }
+    ],
+    "worker_stop_confirmed": false,
+    "claim_identity": "UNVERIFIED: native public task omits worker principal",
+    "semantic_correctness": "NOT_VERIFIED: schema acceptance is not factual review",
+    "display_timezone": "Asia/Seoul; stored timestamps are UTC"
+  },
+  "real_dot": "NEEDS_USER_ACTION",
+  "local_contract": "NOT_TESTED"
+}

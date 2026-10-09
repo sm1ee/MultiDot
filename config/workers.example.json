@@ -1,0 +1,9 @@
+{
+  "note": "Review-only provisioning design; this file does not create identities or credentials.",
+  "producer": {"identity": "hub-producer", "queues": ["dot-b", "dot-c", "dot-a"], "scopes": ["read", "submit"]},
+  "workers": [
+    {"worker": "dot-b", "identity": "worker-b", "queue": "dot-b", "scopes": ["read", "work", "subscribe"], "max_active": 1},
+    {"worker": "dot-c", "identity": "worker-c", "queue": "dot-c", "scopes": ["read", "work", "subscribe"], "max_active": 1},
+    {"worker": "dot-a", "identity": "worker-a-synth", "queue": "dot-a", "scopes": ["read", "work", "subscribe"], "max_active": 1}
+  ]
+}

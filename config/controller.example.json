@@ -1,0 +1,7 @@
+{
+  "mode": "native",
+  "base_url": "http://127.0.0.1:8080",
+  "producer": "hub-producer",
+  "token_env": "MULTIDOT_PRODUCER_TOKEN",
+  "projects": ["demo"]
+}

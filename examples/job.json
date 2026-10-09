@@ -1,0 +1,14 @@
+{
+  "schema_version": "multidot.job.v1",
+  "project_id": "demo",
+  "request_id": "demo-review-001",
+  "title": "Compare controller choices",
+  "goal": "Compare implementation and requirements using only the provided brief.",
+  "input_snapshot_id": "snapshot-v1",
+  "policy_id": "provided-materials-only",
+  "steps": [
+    {"step_id": "implementation-review", "worker": "dot-b", "instructions": "Review implementation and operations.", "acceptance_criteria": ["Differences", "Evidence", "Unknowns"], "depends_on": [], "required_artifacts": ["report.md"]},
+    {"step_id": "requirements-review", "worker": "dot-c", "instructions": "Independently review gaps and assumptions.", "acceptance_criteria": ["Gaps", "Verification needs", "Evidence"], "depends_on": [], "required_artifacts": ["report.md"]}
+  ],
+  "synthesis": {"worker": "dot-a", "trigger": "all_required_steps_accepted", "instructions": "Compare the exact accepted results, distinguish disagreements, and report unknowns."}
+}

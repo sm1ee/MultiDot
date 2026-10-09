@@ -1,0 +1,6 @@
+{
+  "schema_version": "multidot.snapshot.v1",
+  "project_id": "demo",
+  "snapshot_id": "snapshot-v1",
+  "artifacts": [{"name": "brief.md", "media_type": "text/markdown", "content": "Compare a single local controller with a distributed queue. Consider durability, operational burden, and uncertainty. Use only this provided material."}]
+}

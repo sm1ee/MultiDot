@@ -1,0 +1,9 @@
+{
+  "policy_id": "provided-materials-only",
+  "allowed": ["analyze_provided_text", "return_small_text_artifacts"],
+  "automatic_attempts": 1,
+  "delegation_depth": 1,
+  "cross_revision_loops": 0,
+  "account_failover": false,
+  "note": "Descriptive policy. Server/account permissions must separately enforce tool boundaries."
+}

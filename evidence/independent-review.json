@@ -1,0 +1,26 @@
+{
+  "reviewed_at": "2026-10-09T03:05:39.199086+00:00",
+  "classification": "MOCK",
+  "tests_run": 62,
+  "passes": true,
+  "independent_regressions_integrated": 13,
+  "recorded_hashes_match": true,
+  "source_hashes": {
+    "src/multidot/__init__.py": "86f9bd739b6312f59743084d9d9c68869ed21dcee0ddcc1a975644dc35101d1e",
+    "src/multidot/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "src/multidot/cli.py": "67ec0b276864da51ca3d64f8f91b82c83da9b318d2f75195af840eb679d05e18",
+    "src/multidot/controller.py": "10ea97a098f10eeee5dad15976ffe9f3ae02f0c9874786acd82ff0e9e4c84897",
+    "src/multidot/dot2api_adapter.py": "8185295fd215e9258c90bc4eec2c86ef47afe945632950135170de0a46b3ff77",
+    "src/multidot/mock.py": "f9ba0990ab573b875d71a382d35eb7799da3254083873e148c9d00df1b8e7d82",
+    "src/multidot/models.py": "229c0532335ae3967acbc98bf5e38e55beccbe7fea3728d2654dad28c4ca0462",
+    "src/multidot/storage.py": "05f8a61874f896609cbd4086236391157abdd0c4180aa3ba76895ae4d9b1f260"
+  },
+  "demo": {
+    "state": "COMPLETED",
+    "delivery": "notification_pending",
+    "artifacts": 3
+  },
+  "local_contract": "NOT_TESTED",
+  "real_dot": "NEEDS_USER_ACTION",
+  "upstream_executed": false
+}

@@ -1,0 +1,31 @@
+{
+  "classification": "LOCAL_CONTRACT_INSTALL",
+  "upstream_commit": "66a761505ff73c5dca730260efcaeb5697db81ad",
+  "upstream_tree": "e83f79db4097321b6cf892935ba85f28a76aaa47",
+  "uv_lock_sha256": "b233641bbb90ce6ebd1a9fedb82bc4fd9afcfc6837c496ea3e085a37bf8582be",
+  "python": "3.12.14",
+  "uv": "0.12.23",
+  "isolated_environment": true,
+  "global_or_system_changes": false,
+  "commands": [
+    "git clone --no-checkout https://github.com/Pluviobyte/dot2api.git upstream",
+    "git -C upstream checkout --detach 66a761505ff73c5dca730260efcaeb5697db81ad",
+    "git -C upstream rev-parse HEAD HEAD^{tree}",
+    "git -C upstream status --porcelain",
+    "(cd upstream && UV_PROJECT_ENVIRONMENT=../.venv UV_CACHE_DIR=../.uv-cache uv sync --frozen --no-default-groups)",
+    "../MultiDot-local-contract-20261009/.venv/bin/python scripts/run_local_contract.py --upstream ../MultiDot-local-contract-20261009/upstream --allow-temporary-fixtures"
+  ],
+  "lock_scope": "All 18 installed runtime/project versions match upstream uv.lock. Build isolation resolves upstream hatchling>=1.27,<2 separately; this is not a fully hermetic build lock.",
+  "transient_build_cache_versions": {
+    "editables": "0.6",
+    "hatchling": "1.32.4",
+    "packaging": "26.3",
+    "pathspec": "1.1.1",
+    "pluggy": "1.6.0",
+    "tomlkit": "0.15.1",
+    "trove-classifiers": "2026.9.21.13"
+  },
+  "unvendored_upstream": true,
+  "runtime_fixture_state_removed": true,
+  "retained_local_only": "Sibling reviewed checkout, isolated venv and package cache remain for repeatable review; no server or credential state remains."
+}

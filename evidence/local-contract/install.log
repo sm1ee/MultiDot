@@ -1,0 +1,28 @@
+Using CPython 3.12.14 interpreter at: {EXECUTOR_PYTHON}
+Creating virtual environment at: ../.venv
+   Building dot2api @ file://{LOCAL_CONTRACT_WORKSPACE}/upstream
+Downloading cryptography (4.5MiB)
+Downloading pydantic-core (2.0MiB)
+ Downloaded pydantic-core
+ Downloaded cryptography
+      Built dot2api @ file://{LOCAL_CONTRACT_WORKSPACE}/upstream
+Prepared 18 packages in 8.69s
+Installed 18 packages in 4ms
+ + annotated-doc==0.0.5
+ + annotated-types==0.8.0
+ + anyio==4.15.1
+ + cffi==2.1.1
+ + click==8.5.0
+ + cryptography==50.0.2
+ + dot2api==0.1.0 (from file://{LOCAL_CONTRACT_WORKSPACE}/upstream)
+ + fastapi==0.142.2
+ + h11==0.16.0
+ + idna==3.20
+ + opentelemetry-api==1.45.0
+ + pycparser==3.0
+ + pydantic==2.13.5
+ + pydantic-core==2.46.5
+ + starlette==1.7.0
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.4
+ + uvicorn==0.54.0

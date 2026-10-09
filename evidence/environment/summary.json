@@ -1,0 +1,39 @@
+{
+  "test_id": "T01",
+  "classification": "LOCAL_ENVIRONMENT",
+  "baseline_at": "2026-10-09T02:39:58.258945+00:00",
+  "reentry_at": "2026-10-09T02:46:43.548379+00:00",
+  "elapsed_seconds": 405.289434,
+  "files_match": {
+    "evidence/environment/canary.txt": true,
+    "evidence/environment/canary.sqlite": true
+  },
+  "sqlite_integrity": "ok",
+  "executor_runtime": {
+    "python": "3.12.14",
+    "sqlite": "3.53.1"
+  },
+  "cloud_native_runtime": {
+    "python": "3.13.5",
+    "sqlite": "3.46.1"
+  },
+  "cloud_self_health": {
+    "observed_at": "2026-10-09T02:45:18.787417+00:00",
+    "status": 200
+  },
+  "network_contexts": "Separate loopback namespaces; cross-context requests failed",
+  "graceful_diagnostic_probe_stop": "FAIL; exact owned native probe was forcibly stopped and cleanup verified",
+  "authenticated_ingress": "NEEDS_USER_ACTION",
+  "real_dot": "NEEDS_USER_ACTION",
+  "idle_continuity": "NOT_TESTED",
+  "raw_host_identifiers_included": false,
+  "source_receipt_sha256": {
+    "baseline.json": "ff7f3e7b26c53025b81e3a8d7f03317001cd69b441002ba362d67445046e38d2",
+    "file-reentry.json": "c1ec72adee0dfa7fea8b34f0a093d401152cefe3ee7264dd6d89d9ab871dc3af",
+    "final-reentry.json": "4b8a74a1517a2c65a97c495b112eb394f8aaaa5f8f8d9c30c95481d5ad072a82",
+    "cloud-self-health.json": "50ac30e3f8d38e37c88d5d0adb021b43dd794d1d1b5028badc2b7271de93cf0b",
+    "cloud-cleanup.json": "418896fd4993157cba26dccf201fb949d1fb8adc5c50af20850a54076ba29d07",
+    "cloud-namespace-and-cleanup.json": "4db5e57630218dc03cd8bc12fd4e6e583da8a019b99c119d107743d7a6b44efa",
+    "executor-to-cloud-health.json": "5972853ef80b51084d43fe3bd5eeb89d447785fe66d0a782f2adb5ed01fa5bd1"
+  }
+}
