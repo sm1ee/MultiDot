@@ -1,126 +1,148 @@
-# Enter keys in a private config
+# Private dots config
 
-You can enter existing keys yourself in a local JSON config, without a browser
-form. This prepares the same `file:` references used by the runtime. It does
-not issue credentials, initialize accounts, attach a tunnel, or start a service.
-
-The intended deployment is still **dot's own cloud runtime**. This feature does
-not move deployment to your Mac. A supported way for you to privately edit a
-file in that cloud environment has not yet been verified; code support alone
-does not resolve that access requirement or establish a live connection.
-
-## Three steps
-
-Run these commands yourself in the intended runtime environment. First prepare
-`config/runtime.local.json` from the existing runtime example with its actual
-non-secret paths and selected tunnel ID. Do not put keys in that runtime config.
-
-1. Create a private copy of the blank key template:
-
-   ```sh
-   python3 scripts/runtime_credentials.py init
-   ```
-
-   This creates `config/credentials.private.json` with mode 0600 and refuses to
-   overwrite an existing file. The public template is
-   `config/credentials.example.json`; all three values there are empty.
-
-2. Open `config/credentials.private.json` in your own trusted editor and fill in
-   the values you already have approval to use:
-
-   ```json
-   {
-     "schema_version": 1,
-     "runtime_api_key": "",
-     "worker_b_token": "",
-     "producer_token": ""
-   }
-   ```
-
-   - `runtime_api_key`: the raw OpenAI runtime key, with Tunnels Read + Use for
-     the selected tunnel. Do not use an admin key.
-   - `worker_b_token`: the raw dot2api B worker token. The helper adds `Bearer `.
-     Its independently verified grant must be queue `dot-b` only, with `read`
-     and `work`, optionally `subscribe`.
-   - `producer_token`: the raw dot2api producer token, separate from B's token.
-
-   An empty field reuses an already-present owner-only secret file without
-   reading its value. Reuse checks file metadata only; it does not validate the
-   key's contents or service permissions. If a required file is absent, the command lists the
-   missing field names and writes no credential files. Do not invent missing
-   tokens; their approved provisioning remains a separate step. Values must
-   be single-line printable ASCII without spaces or a `Bearer ` prefix.
-
-3. Apply once:
-
-   ```sh
-   python3 scripts/runtime_credentials.py install
-   ```
-
-   Only field names and a success/error code are printed. The helper writes
-   0600 files under the configured state's 0700 `secrets` directory:
-
-   | Private config field | Existing runtime file |
-   | --- | --- |
-   | `runtime_api_key` | `secrets/runtime-api-key` |
-   | `worker_b_token` | `secrets/worker-b-authorization` |
-   | `producer_token` | `secrets/producer-token` |
-
-   No existing value is overwritten. Supplying a nonempty field for an existing
-   destination fails; leave that field empty to reuse the existing file. A
-   running supervisor blocks installation. Rotation/replacement is deliberately
-   a separate stopped-runtime operation, not a silent side effect of this helper.
-
-   Each final file is published only after its complete value has been written
-   and synced, using an atomic operation that cannot overwrite an existing name.
-   An ordinary error rolls back only files created by that invocation. A process
-   or host crash can still leave some complete files installed and `.pending-*`
-   plaintext copies; the whole batch is not atomic. On retry, leave fields for
-   already-installed files empty and provide only missing values. Empty,
-   oversized or hard-linked existing entries are refused using metadata only.
-   If a crash left a hard-linked final/pending pair, the user must resolve those
-   stopped-runtime files privately before retrying; no automatic overwrite or
-   secret-file cleanup is attempted by the next invocation.
-
-For different file locations, pass paths, never values:
+For a new installation, use [간단 설정 안내](simple-setup.md):
 
 ```sh
-python3 scripts/runtime_credentials.py install --private-config config/credentials.private.json --runtime-config config/runtime.local.json
+python3 scripts/multidot.py init
+# Edit config/dots.private.json yourself in a trusted private editor.
+python3 scripts/multidot.py setup
+python3 scripts/multidot.py run
 ```
 
-Once all separate provisioning, identity verification and execution approvals
-are satisfied, the user can run the existing foreground command in the same
-runtime environment:
+The preferred config is a list of dots, each with just `name`, `tunnel_id` and
+`runtime_api_key`. The public [template](../config/dots.example.json) has blank
+values. `init` creates an owner-only 0600 private file and refuses to overwrite
+an existing file. Roles are optional: `worker` is the default and at most one
+entry may be `synthesis`, alongside at least one regular worker.
 
-```sh
-python3 scripts/runtime_supervisor.py --config config/runtime.local.json run
-```
+Names are Unicode display labels, not queue IDs or permissions. Each label must
+be nonempty, without control characters, and fit within 320 UTF-8 bytes. The
+list determines the dot count; fixed A/B/C names and counts are not required.
+Config byte limits and host resources still bound the installation.
 
-See [persistent runtime](persistent-runtime.md) for the managed-session, Events,
-shutdown and recovery limits. Installing config does not prove readiness,
-account connectivity, Events delivery, or survival after host replacement.
+The intended deployment remains **dot's own cloud runtime**, not the user's
+Mac. A supported way for the user to privately edit its files has not yet been
+verified. No real setup or tunnel connection has run. This guide does not
+resolve that access requirement.
+
+## Which external key goes here?
+
+Use an existing tunnel from
+[OpenAI Tunnels settings](https://platform.openai.com/settings/organization/tunnels)
+and a runtime key from
+[OpenAI API keys settings](https://platform.openai.com/settings/organization/api-keys).
+The key and its principal need **Tunnels Read + Use** authorization for the
+selected tunnel and its relevant workspace/organization; no admin key or
+Manage permission is needed for runtime operation. See the pinned client's
+[official permissions guide](https://github.com/openai/tunnel-client/blob/v0.0.16/docs/permissions.md).
+
+- Each entry must have a distinct, valid existing tunnel ID.
+- A key may be reused for multiple entries **only if its authorization covers
+  every corresponding tunnel and workspace/organization**. Sharing an account
+  alone does not establish that access.
+- Enter the raw key, without `Bearer `, whitespace or line breaks. The field is
+  printable ASCII and at most 8,191 characters.
+- For a new installation every entry needs its key. Local setup checks format,
+  not OpenAI authorization; no external API call is made.
+
+There are no manual internal producer/worker token fields in this preferred
+config. With the required user authorization, `setup` initializes them through
+the reviewed, pinned dot2api APIs, verifies their local bindings, and stores
+owner-only `file:` secrets. Internal tokens have a 30-day lifetime. There is no
+silent renewal, overwrite or key rotation.
+
+## What setup changes
+
+`setup` requires the already-installed, verified toolchain described in the
+[runtime guide](persistent-runtime.md#prerequisites-and-paths). It creates local
+state and credentials; it does not download software, start services, create
+OpenAI tunnels or authenticate any remote account.
+
+A fresh installation gets stable UUID-based queue/worker IDs and a tenant,
+recorded in its private manifest. On a stopped installation, setup matches
+entries by tunnel ID, so display-name edits and list reordering preserve those
+identities, queues, keys and queued work. On such a rerun a blank
+`runtime_api_key` reuses the installed value; a supplied key must match the
+recorded key fingerprint. Existing secret-file reuse checks metadata, not remote
+validity. Missing or unsafe state is refused rather than silently rebuilt.
+
+Adding/removing an entry, changing a tunnel ID or role, or supplying a changed
+key is deliberately refused pending an explicit migration/rotation workflow.
+Do not delete old state to bypass that refusal. Stop the runtime before any
+setup rerun; setup refuses a running supervisor. Rerunning setup does not extend
+internal token expiry.
+
+Fresh setup builds a private staging directory and publishes the complete state
+directory using a non-overwriting atomic rename. Ordinary pre-publication
+failures remove that invocation's stage. A killed process or host failure can
+leave a private staging directory containing credentials; there is no automatic
+secure deletion or crash-cleanup promise. If publication durability is
+unconfirmed, inspect the stopped installation before retrying. Display-name
+updates span metadata files; a crash can leave stale labels, but a setup rerun
+repairs them without reissuing identities or tokens.
 
 ## Plaintext and handling limits
 
-This is **plaintext storage**, not encryption or a secrets vault. Anyone who can
-read your account's files, privileged processes, editor recovery files or
-backups may obtain the values. The private JSON and generated files are two
-copies; the helper does not erase the private JSON, clean editor history or
-claim secure deletion. Use a trusted editor without cloud sync or shared
-backups for this file, and keep the file owner-only after saving.
+Private JSON and generated key files are **plaintext, not a secrets vault**.
+Anyone with access to the OS account, privileged processes, editor recovery
+files or backups may obtain them. Setup does not erase the filled JSON or editor
+history. Use a trusted editor without cloud sync/shared backups, and preserve
+0600 permissions after saving. Generated private directories use 0700.
 
-Private `*.private.json` and `*.local.json` files, common editor backups/swap
-files, and generated `secrets/` trees are ignored by Git. Git ignore is not
-encryption, does not protect an already-tracked file, and can be bypassed by
-`git add -f`; never force-add credentials. Symlink paths, unsafe permissions,
-unexpected fields and oversized/multiline values are refused without echoing
-input or parser details. The helper performs no network call and starts no
-process, so its success only means local files were prepared.
+Private `*.private.json`, `*.local.json`, common editor backup/swap files and
+`secrets/` trees are Git-ignored. Ignore rules are not encryption, do not protect
+already-tracked files and can be bypassed by `git add -f`. Never force-add keys.
+The upstream `encryption.key` is also ignored. Keep the entire state directory
+outside the checkout as the default does, including any customized state root.
+Symlinks, unsafe file metadata, duplicate/unknown fields and oversized input are
+rejected. Errors do not echo values or parser details.
 
-Do not paste real values in chat, shell arguments, screenshots, issue reports,
-logs or commits. After entering real keys, **do not ask an agent to open, cat,
-read, validate or install the filled config**. Run the user commands yourself.
-Even though normal `status` and `check` output is redacted, `check` and startup
-must read key files locally; an agent should not run those against your real
-values without a separately supported secure flow. Share only the helper's
-fixed error code and listed field names if you need help.
+Do not paste real values in chat, shell arguments, screenshots, logs, issue
+reports or commits. After entering real keys, **do not ask an agent to open,
+read, validate or install the filled config**, or to run setup/startup against
+it. Run those user commands yourself unless a separately supported secure flow
+exists. `run` does not reopen the private input JSON, but it must read installed
+secret files locally. Redacted output does not make credential handling safe.
+For help, share only the fixed error code and affected field/index information.
+
+## Advanced legacy v1 compatibility
+
+**Only for an existing v1/B-only installation.** New setups should use the dots
+list above. The old `runtime_credentials.py` helper remains compatible with
+`config/runtime.local.json` and is not a migration tool for generic installs.
+It does not provision identities, connect a tunnel or start any process.
+
+For the already-provisioned legacy runtime, the operator can create and edit its
+separate private template, then install existing values:
+
+```sh
+python3 scripts/runtime_credentials.py init
+# Privately edit config/credentials.private.json yourself.
+python3 scripts/runtime_credentials.py install --private-config config/credentials.private.json --runtime-config config/runtime.local.json
+```
+
+Its three legacy fields are:
+
+- `runtime_api_key`: raw key with Read + Use for that legacy tunnel
+- `worker_b_token`: raw dot2api token, independently verified as queue `dot-b`
+  only with `read`, `work` and optionally `subscribe`; the helper adds `Bearer `
+- `producer_token`: raw dot2api producer token, separate from the worker token
+
+They become `secrets/runtime-api-key`, `secrets/worker-b-authorization` and
+`secrets/producer-token` under the configured state root. Values must be
+single-line printable ASCII without whitespace or a `Bearer ` prefix. Blank
+fields reuse existing owner-only files by metadata only; if a required file is
+missing, the helper reports missing field names without writing credentials.
+A supplied nonempty value cannot overwrite an existing destination. A running
+supervisor blocks installation.
+
+This legacy helper publishes each complete file without overwriting. The batch
+is not atomic: a crash can leave complete files and `.pending-*` plaintext
+copies. Retry with installed fields blank and only missing values supplied.
+Hard-linked final/pending pairs require private stopped-runtime review before a
+retry; there is no automatic overwrite or cleanup. Empty, oversized and
+hard-linked existing entries are refused using metadata only. The helper's
+success establishes only local file preparation, not account connectivity.
+
+See [legacy runtime operation](persistent-runtime.md#advanced-legacy-v1-compatibility)
+for the corresponding commands. Keep legacy configs separate from the new flow.

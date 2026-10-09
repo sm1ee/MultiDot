@@ -1,0 +1,31 @@
+{
+  "classification": "LOCAL_LEGACY_REGRESSION",
+  "local_contract": {
+    "passed": true,
+    "tests": 21,
+    "fixtures": 22,
+    "cleanup_verified": true,
+    "external_transport_calls": 0
+  },
+  "runtime_contract": {
+    "passed": true,
+    "checks": 15,
+    "foreground_observation_seconds": 20,
+    "heartbeats": 4,
+    "ephemeral_state_removed": true,
+    "owned_listener_ports_closed": {
+      "upstream_port": true,
+      "ingress_port": true,
+      "health_port": true
+    },
+    "real_tunnel_connected": false,
+    "real_dot_jobs": false
+  },
+  "harness_fix": "scripts/run_runtime_checks.py prepends ROOT/src so direct invocation does not import scripts/multidot.py as package",
+  "source_sha256": {
+    "scripts/run_runtime_checks.py": "fd77fceb651de6daea667ac72913f4e1e97a6ff63bf5aa12de63cb30607ba176",
+    "scripts/runtime_supervisor.py": "870ca2b1a635a293521f8c68f87f959a3fcc38e3761487252f12d5b5150ebc9a",
+    "scripts/runtime_ingress.py": "a140297e3d135b348d0b1de49ac0faff82a9dbf737a35ef53300ad69fcf41dab",
+    "src/multidot/controller.py": "bfe88ce339a24ea7159fbc5b082cfb34be52599e7cc92738a36c579f62ea9c14"
+  }
+}

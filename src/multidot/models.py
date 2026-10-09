@@ -6,11 +6,14 @@ import json
 import re
 from datetime import datetime, timezone
 
+from .legacy_compat import legacy_workers
+
 MAX_DOCUMENT_BYTES = 48_000
 MAX_RESULT_BYTES = 48_000
 MAX_ARTIFACT_BYTES = 16_000
 MAX_WIRE_BYTES = 120_000  # below pinned upstream's 131072-byte normalized operation limit
-WORKERS = ("dot-b", "dot-c", "dot-a")
+# Compatibility export only. Runtime authorization uses the configured registry.
+WORKERS = tuple(worker["id"] for worker in legacy_workers())
 TERMINAL_UPSTREAM = {"completed", "failed", "cancelled", "expired"}
 
 
@@ -135,7 +138,37 @@ def validate_snapshot(spec):
     return spec
 
 
-def validate_job(spec):
+def validate_workers(workers=None):
+    """Validate explicit stable IDs and independent display names/roles.
+
+    ``None`` preserves the original example config. An explicit empty or invalid
+    registry must never silently enable those legacy workers instead.
+    """
+    if workers is None:
+        workers = legacy_workers()
+    if not isinstance(workers, list) or not workers:
+        raise ValidationError("A nonempty worker registry is required")
+    ids, synthesis_count, normalized = set(), 0, []
+    for worker in workers:
+        fields(worker, ("id", "name", "role"))
+        worker_id = identifier(worker["id"], "worker ID")
+        text(worker["name"], "worker display name", 400)
+        if worker_id in ids:
+            raise ValidationError("Worker IDs must be unique")
+        if worker["role"] not in ("worker", "synthesis"):
+            raise ValidationError("Worker role must be worker or synthesis")
+        ids.add(worker_id)
+        synthesis_count += worker["role"] == "synthesis"
+        normalized.append(dict(worker))
+    if synthesis_count > 1:
+        raise ValidationError("At most one synthesis worker is allowed")
+    if not any(worker["role"] == "worker" for worker in normalized):
+        raise ValidationError("At least one worker role is required")
+    return normalized
+
+
+def validate_job(spec, workers=None):
+    registry = {worker["id"]: worker for worker in validate_workers(workers)}
     fields(spec, ("schema_version", "project_id", "request_id", "title", "goal", "input_snapshot_id", "policy_id", "steps"), ("synthesis",))
     if spec["schema_version"] != "multidot.job.v1" or spec["policy_id"] != "provided-materials-only":
         raise ValidationError("Unsupported schema or policy")
@@ -154,8 +187,9 @@ def validate_job(spec):
         if step["step_id"] in ids or step["step_id"] == "synthesis":
             raise ValidationError("Duplicate or reserved step ID")
         ids.add(step["step_id"])
-        if step["worker"] not in ("dot-b", "dot-c"):
-            raise ValidationError("P0 requires an explicitly selected B or C")
+        worker_id = identifier(step["worker"], "worker ID")
+        if worker_id not in registry or registry[worker_id]["role"] != "worker":
+            raise ValidationError("Analysis target must be a registered worker role")
         text(step["instructions"], "instructions")
         if not isinstance(step["acceptance_criteria"], list) or not 1 <= len(step["acceptance_criteria"]) <= 12:
             raise ValidationError("Acceptance criteria required")
@@ -178,8 +212,10 @@ def validate_job(spec):
     if "synthesis" in spec:
         synth = spec["synthesis"]
         fields(synth, ("worker", "trigger", "instructions"))
-        if synth["worker"] != "dot-a" or synth["trigger"] != "all_required_steps_accepted":
-            raise ValidationError("Synthesis is one bounded A-only stage")
+        worker_id = identifier(synth["worker"], "synthesis worker ID")
+        if (worker_id not in registry or registry[worker_id]["role"] != "synthesis"
+                or synth["trigger"] != "all_required_steps_accepted"):
+            raise ValidationError("Synthesis must target the registered synthesis role after all required steps are accepted")
         text(synth["instructions"], "synthesis instructions")
     return spec
 

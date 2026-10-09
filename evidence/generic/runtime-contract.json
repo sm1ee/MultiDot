@@ -1,0 +1,351 @@
+{
+  "classification": "LOCAL_RUNTIME_CONTRACT",
+  "started_at": "2026-10-09T07:06:54.620652+00:00",
+  "passed": true,
+  "checks": [
+    {
+      "profiles": 1,
+      "check": "generic_setup_unicode_names_stable_unique_ids_and_component_count",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "actual_security_authenticates_exact_worker_queue_scope_and_producer_registry",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "all_rendered_routes_loopback_and_headers_file_referenced",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "offline_snapshot_and_explicit_job_submission_create_no_network_attempts",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "actual_pinned_upstream_controller_and_all_ingress_tunnel_children_running",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "actual_mcp_initialize_tools_list_and_call_for_every_worker",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "own_queue_allowed_peer_queues_denied_in_mcp_and_native_http",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "ingress_rejects_missing_same_queue_peer_broad_foreign_and_other_worker_headers",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "ingress_rejects_native_submit_and_capability_url_paths",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "actual_upstream_tenant_isolation_for_same_queue_read_list_and_foreign_task",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "controller_generic_dispatch_claim_heartbeat_completion_and_durable_artifacts",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "exactly_one_attempt_per_step_no_duplicate_dispatch_and_no_remaining_reservations",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "every_official_tunnel_client_contacted_only_local_fake_plane",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "owned_processes_stopped_and_all_loopback_listeners_closed",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "display_rename_preserves_ids_queues_roles_ports_and_fixture_tokens",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "lifecycle_logs_do_not_contain_fixture_credentials",
+      "result": "PASS"
+    },
+    {
+      "profiles": 1,
+      "check": "disposable_fixture_tree_removed",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "generic_setup_unicode_names_stable_unique_ids_and_component_count",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "actual_security_authenticates_exact_worker_queue_scope_and_producer_registry",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "all_rendered_routes_loopback_and_headers_file_referenced",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "offline_snapshot_and_explicit_job_submission_create_no_network_attempts",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "actual_pinned_upstream_controller_and_all_ingress_tunnel_children_running",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "actual_mcp_initialize_tools_list_and_call_for_every_worker",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "own_queue_allowed_peer_queues_denied_in_mcp_and_native_http",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "ingress_rejects_missing_same_queue_peer_broad_foreign_and_other_worker_headers",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "ingress_rejects_native_submit_and_capability_url_paths",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "actual_upstream_tenant_isolation_for_same_queue_read_list_and_foreign_task",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "controller_generic_dispatch_claim_heartbeat_completion_and_durable_artifacts",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "exactly_one_attempt_per_step_no_duplicate_dispatch_and_no_remaining_reservations",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "every_official_tunnel_client_contacted_only_local_fake_plane",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "owned_processes_stopped_and_all_loopback_listeners_closed",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "display_rename_preserves_ids_queues_roles_ports_and_fixture_tokens",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "lifecycle_logs_do_not_contain_fixture_credentials",
+      "result": "PASS"
+    },
+    {
+      "profiles": 2,
+      "check": "disposable_fixture_tree_removed",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "generic_setup_unicode_names_stable_unique_ids_and_component_count",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "actual_security_authenticates_exact_worker_queue_scope_and_producer_registry",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "all_rendered_routes_loopback_and_headers_file_referenced",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "offline_snapshot_and_explicit_job_submission_create_no_network_attempts",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "actual_pinned_upstream_controller_and_all_ingress_tunnel_children_running",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "actual_mcp_initialize_tools_list_and_call_for_every_worker",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "own_queue_allowed_peer_queues_denied_in_mcp_and_native_http",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "ingress_rejects_missing_same_queue_peer_broad_foreign_and_other_worker_headers",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "ingress_rejects_native_submit_and_capability_url_paths",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "actual_upstream_tenant_isolation_for_same_queue_read_list_and_foreign_task",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "controller_generic_dispatch_claim_heartbeat_completion_and_durable_artifacts",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "exactly_one_attempt_per_step_no_duplicate_dispatch_and_no_remaining_reservations",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "configured_synthesis_target_runs_once_with_exact_accepted_dependency_hashes",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "every_official_tunnel_client_contacted_only_local_fake_plane",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "owned_processes_stopped_and_all_loopback_listeners_closed",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "display_rename_preserves_ids_queues_roles_ports_and_fixture_tokens",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "lifecycle_logs_do_not_contain_fixture_credentials",
+      "result": "PASS"
+    },
+    {
+      "profiles": 4,
+      "check": "disposable_fixture_tree_removed",
+      "result": "PASS"
+    },
+    {
+      "profiles": 10,
+      "check": "actual_operator_setup_cli_verifies_pinned_environment_without_start_or_external_contact",
+      "result": "PASS"
+    },
+    {
+      "profiles": 10,
+      "check": "generic_setup_unicode_names_stable_unique_ids_and_component_count",
+      "result": "PASS"
+    },
+    {
+      "profiles": 10,
+      "check": "actual_security_authenticates_exact_worker_queue_scope_and_producer_registry",
+      "result": "PASS"
+    },
+    {
+      "profiles": 10,
+      "check": "all_rendered_routes_loopback_and_headers_file_referenced",
+      "result": "PASS"
+    },
+    {
+      "profiles": 10,
+      "check": "ten_profile_preflight_without_launch_or_jobs",
+      "result": "PASS"
+    },
+    {
+      "profiles": 10,
+      "check": "display_rename_preserves_ids_queues_roles_ports_and_fixture_tokens",
+      "result": "PASS"
+    },
+    {
+      "profiles": 10,
+      "check": "lifecycle_logs_do_not_contain_fixture_credentials",
+      "result": "PASS"
+    },
+    {
+      "profiles": 10,
+      "check": "disposable_fixture_tree_removed",
+      "result": "PASS"
+    }
+  ],
+  "cases": [
+    {
+      "profiles": 1,
+      "runtime_executed": true,
+      "native_controller_tasks_completed": 1,
+      "checks_passed": 17,
+      "cleanup_verified": true
+    },
+    {
+      "profiles": 2,
+      "runtime_executed": true,
+      "native_controller_tasks_completed": 2,
+      "checks_passed": 17,
+      "cleanup_verified": true
+    },
+    {
+      "profiles": 4,
+      "runtime_executed": true,
+      "native_controller_tasks_completed": 4,
+      "checks_passed": 18,
+      "cleanup_verified": true
+    },
+    {
+      "profiles": 10,
+      "runtime_executed": false,
+      "native_controller_tasks_completed": 0,
+      "checks_passed": 8,
+      "cleanup_verified": true
+    }
+  ],
+  "real_credentials": false,
+  "real_tunnel_connected": false,
+  "real_dot_jobs": false,
+  "control_plane": "loopback FakePlane only",
+  "events_enabled": false,
+  "os_autostart": false,
+  "host_lifetime_guarantee": false,
+  "supervisor_automatic_restart": false,
+  "upstream_commit": "66a761505ff73c5dca730260efcaeb5697db81ad",
+  "tunnel_sha256": "01260ee973d5510861bc32979739561edd33869f99f9f8cd324f6d0da5b2e692",
+  "fake_plane_requests": 139,
+  "finished_at": "2026-10-09T07:07:13.705781+00:00",
+  "checks_passed": 60,
+  "source_sha256": "052fd22e9eb3acb069fa6fe0bc8d4685b89df0072e3c758a28f7ef78b648f059"
+}

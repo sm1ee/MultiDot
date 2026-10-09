@@ -17,6 +17,8 @@ dist/
 !.env.example
 !.env.sample
 secrets/
+encryption.key
+MultiDot-state/
 config/private*.json
 config/*.private.json
 config/*.local.json

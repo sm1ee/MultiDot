@@ -9,10 +9,11 @@ import sys
 import time
 import unittest
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
 from multidot import __version__
 from multidot.dot2api_adapter import UPSTREAM_COMMIT
-
-ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReceiptResult(unittest.TextTestResult):

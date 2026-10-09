@@ -7,9 +7,10 @@ import time
 import uuid
 
 from .dot2api_adapter import ProtocolError, TransportUncertain, UpstreamRejected
-from .models import (AccessError, ConflictError, TERMINAL_UPSTREAM, ValidationError, WORKERS,
+from .legacy_compat import LEGACY_CONTROLLER_ACTOR
+from .models import (AccessError, ConflictError, TERMINAL_UPSTREAM, ValidationError,
                      artifact_name, canonical, digest, identifier, now, redact, text,
-                     upstream_identifier, validate_job, validate_result, validate_snapshot, wire_bounded)
+                     upstream_identifier, validate_job, validate_result, validate_snapshot, validate_workers, wire_bounded)
 from .storage import Store
 
 POLICY = ("Analyze only the supplied materials and return data in multidot.result.v1. "
@@ -19,12 +20,16 @@ POLICY = ("Analyze only the supplied materials and return data in multidot.resul
 
 
 class Controller:
-    def __init__(self, db_path, adapter, allowed_projects, actor="controller-a"):
+    def __init__(self, db_path, adapter, allowed_projects, actor=None, workers=None):
+        # Names are display-only config. Existing queues, attempts and body hashes
+        # are never rewritten when a worker's display name changes.
+        self.workers = validate_workers(workers)
+        self.worker_registry = {worker["id"]: worker for worker in self.workers}
+        self.allowed_projects = frozenset(identifier(p) for p in allowed_projects)
+        self.actor = identifier(actor if actor is not None else LEGACY_CONTROLLER_ACTOR if workers is None else "controller")
         self.store = Store(db_path)
         self.db = self.store.db
         self.adapter = adapter
-        self.allowed_projects = frozenset(identifier(p) for p in allowed_projects)
-        self.actor = identifier(actor)
 
     def close(self):
         self.store.close()
@@ -36,6 +41,13 @@ class Controller:
     def _audit(self, db, job, action, code):
         db.execute("INSERT INTO audit(at,actor,job_id,action,code) VALUES(?,?,?,?,?)", (now(), self.actor, job, action, code))
 
+    def _worker_allowed(self, db, worker_id, project_id, kind):
+        worker = self.worker_registry.get(worker_id)
+        role = {"analysis": "worker", "synthesis": "synthesis"}.get(kind)
+        return bool(worker and worker["role"] == role and db.execute(
+            "SELECT 1 FROM worker_projects WHERE worker_id=? AND project_id=?",
+            (worker_id, project_id)).fetchone())
+
     def bootstrap(self, project_id, goal):
         self._access(project_id)
         text(goal, "project goal")
@@ -44,7 +56,10 @@ class Controller:
             if old and old[0] != goal:
                 raise ConflictError("Bootstrap will not overwrite an existing project")
             db.execute("INSERT OR IGNORE INTO projects VALUES(?,?)", (project_id, goal))
-            for worker in WORKERS:
+            for worker in self.worker_registry:
+                stored = db.execute("SELECT queue FROM workers WHERE id=?", (worker,)).fetchone()
+                if stored and stored["queue"] != worker:
+                    raise ConflictError("Stored worker queue differs from its stable ID")
                 db.execute("INSERT OR IGNORE INTO workers(id,queue) VALUES(?,?)", (worker, worker))
                 db.execute("INSERT OR IGNORE INTO worker_projects VALUES(?,?)", (worker, project_id))
 
@@ -64,7 +79,7 @@ class Controller:
         return {"snapshot_id": spec["snapshot_id"], "sha256": hash_}
 
     def submit_job(self, spec):
-        validate_job(spec)
+        validate_job(spec, self.workers)
         if redact(spec, (getattr(self.adapter, "token", ""),)) != spec:
             raise ValidationError("Configured credential is not allowed in job data")
         self._access(spec["project_id"])
@@ -78,7 +93,7 @@ class Controller:
             snapshot = db.execute("SELECT hash FROM snapshots WHERE project_id=? AND id=?", (spec["project_id"], spec["input_snapshot_id"])).fetchone()
             if not snapshot:
                 raise ValidationError("Unknown immutable input snapshot")
-            for worker in {s["worker"] for s in spec["steps"]} | ({"dot-a"} if "synthesis" in spec else set()):
+            for worker in {s["worker"] for s in spec["steps"]} | ({spec["synthesis"]["worker"]} if "synthesis" in spec else set()):
                 if not db.execute("SELECT 1 FROM worker_projects WHERE worker_id=? AND project_id=?", (worker, spec["project_id"])).fetchone():
                     raise AccessError("Worker is not allowed in this project")
             job_id, at = "job-" + uuid.uuid4().hex, now()
@@ -136,24 +151,28 @@ class Controller:
                 spec = json.loads(job["spec"])
                 steps = db.execute("SELECT * FROM steps WHERE job_id=? ORDER BY rowid", (job["id"],)).fetchall()
                 regular = [s for s in steps if s["kind"] == "analysis"]
-                if "synthesis" in spec and all(s["state"] == "ACCEPTED" for s in regular) and not any(s["kind"] == "synthesis" for s in steps):
+                if ("synthesis" in spec and all(s["state"] == "ACCEPTED" for s in regular)
+                        and not any(s["kind"] == "synthesis" for s in steps)
+                        and self._worker_allowed(db, spec["synthesis"]["worker"], job["project_id"], "synthesis")):
                     version = digest([{ "step_id": s["id"], "result_hash": s["result_hash"]} for s in regular])
-                    synth = {"step_id": "synthesis", "worker": "dot-a", "instructions": spec["synthesis"]["instructions"],
+                    synth = {"step_id": "synthesis", "worker": spec["synthesis"]["worker"], "instructions": spec["synthesis"]["instructions"],
                              "acceptance_criteria": ["Compare actual results, evidence, disagreements, and unknowns"],
                              "depends_on": [s["id"] for s in regular], "required_artifacts": ["synthesis.md"]}
                     db.execute("INSERT INTO steps(job_id,id,worker,kind,spec,state,synthesis_version) VALUES(?,?,?,?,?,?,?)",
-                               (job["id"], "synthesis", "dot-a", "synthesis", canonical(synth), "WAITING", version))
+                               (job["id"], "synthesis", synth["worker"], "synthesis", canonical(synth), "WAITING", version))
                     steps = db.execute("SELECT * FROM steps WHERE job_id=? ORDER BY rowid", (job["id"],)).fetchall()
                 by_id = {s["id"]: s for s in steps}
                 snapshot = db.execute("SELECT * FROM snapshots WHERE project_id=? AND id=?", (job["project_id"], spec["input_snapshot_id"])).fetchone()
                 for step in steps:
                     if step["state"] != "WAITING":
                         continue
+                    if not self._worker_allowed(db, step["worker"], job["project_id"], step["kind"]):
+                        continue
                     step_spec = json.loads(step["spec"])
                     if any(by_id[d]["state"] != "ACCEPTED" for d in step_spec["depends_on"]):
                         continue
                     worker = db.execute("SELECT * FROM workers WHERE id=?", (step["worker"],)).fetchone()
-                    if worker["paused"] or db.execute("SELECT 1 FROM reservations WHERE worker=?", (worker["id"],)).fetchone():
+                    if not worker or worker["queue"] != worker["id"] or worker["paused"] or db.execute("SELECT 1 FROM reservations WHERE worker=?", (worker["id"],)).fetchone():
                         continue
                     dependencies = [{"step_id": d, "result_hash": by_id[d]["result_hash"], "result": json.loads(by_id[d]["result"])} for d in step_spec["depends_on"]]
                     payload = {"schema_version": "multidot.task.v1", "kind": step["kind"], "job_id": job["id"], "step_id": step["id"],
@@ -231,12 +250,15 @@ class Controller:
                 self._audit(db, current["job_id"], "submit", error)
                 self._refresh(db, current["job_id"])
 
-    def dispatch(self, limit=3):
+    def dispatch(self, limit=None):
+        if limit is None:
+            limit = len(self.worker_registry)
         sent = []
         for _ in range(limit):
             with self.store.transaction() as db:
-                candidates = db.execute("SELECT a.*,o.sends FROM attempts a JOIN dispatch_outbox o ON o.attempt_id=a.id JOIN jobs j ON j.id=a.job_id WHERE o.state IN ('PENDING','RETRY') AND o.sends<5 AND o.next_try<=? AND j.cancel_requested_at IS NULL ORDER BY a.created_at", (time.time(),)).fetchall()
-                a = next((r for r in candidates if self.db.execute("SELECT project_id FROM jobs WHERE id=?", (r["job_id"],)).fetchone()[0] in self.allowed_projects), None)
+                candidates = db.execute("SELECT a.*,o.sends,j.project_id,s.kind FROM attempts a JOIN dispatch_outbox o ON o.attempt_id=a.id JOIN jobs j ON j.id=a.job_id JOIN steps s ON s.job_id=a.job_id AND s.id=a.step_id WHERE o.state IN ('PENDING','RETRY') AND o.sends<5 AND o.next_try<=? AND j.cancel_requested_at IS NULL ORDER BY a.created_at", (time.time(),)).fetchall()
+                a = next((r for r in candidates if r["project_id"] in self.allowed_projects
+                          and self._worker_allowed(db, r["worker"], r["project_id"], r["kind"])), None)
                 if not a:
                     break
                 db.execute("UPDATE dispatch_outbox SET state='SENDING',sends=sends+1 WHERE attempt_id=?", (a["id"],))
@@ -476,11 +498,13 @@ class Controller:
 
     def list_workers(self):
         rows = self.db.execute("SELECT w.*,r.attempt_id FROM workers w LEFT JOIN reservations r ON r.worker=w.id").fetchall()
-        return [dict(r, active_reservations=1 if r["attempt_id"] else 0, account_global_load="UNKNOWN", progress_percent=None,
-                     subscription_health="UNVERIFIED", token_health="UNVERIFIED", tunnel_health="UNVERIFIED") for r in rows]
+        return [dict(r, name=self.worker_registry[r["id"]]["name"], role=self.worker_registry[r["id"]]["role"],
+                     active_reservations=1 if r["attempt_id"] else 0, account_global_load="UNKNOWN", progress_percent=None,
+                     subscription_health="UNVERIFIED", token_health="UNVERIFIED", tunnel_health="UNVERIFIED")
+                for r in rows if r["id"] in self.worker_registry]
 
     def pause_worker(self, worker, paused=True):
-        if worker not in WORKERS:
+        if not isinstance(worker, str) or worker not in self.worker_registry:
             raise ValidationError("Unknown worker")
         with self.store.transaction() as db:
             db.execute("UPDATE workers SET paused=? WHERE id=?", (int(paused), worker))

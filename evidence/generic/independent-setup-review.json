@@ -1,0 +1,37 @@
+{
+  "classification": "INDEPENDENT_FAKE_SETUP_REVIEW",
+  "passed": true,
+  "independent_setup_checks": 13,
+  "setup_suite_at_review": 16,
+  "additional_non_network_controller_runtime_checks": 30,
+  "upstream_executed": false,
+  "real_credentials": false,
+  "real_config_read": false,
+  "scope": [
+    "first publication and no overwrite",
+    "rename/reorder preserve stable identity and secret bytes",
+    "rejected candidate preserves current config",
+    "symlink parent rejection",
+    "stage cleanup and publication safety",
+    "resolved tool prefix aliases",
+    "generated metadata byte gates before provisioning",
+    "synthetic API tenant/queue/scope arguments"
+  ],
+  "source_sha256": {
+    "scripts/multidot_setup.py": "33f2a59a8131df0e48d45ae283dfd571c99778017c6e8a9ecdf7ebd28cf20dd1",
+    "scripts/multidot.py": "8a02a6c558aae1eb6e66f0eb57b4196608f5d26e05c45b267c06bbc82c9de268"
+  },
+  "runner_source_review": {
+    "passed": true,
+    "executed_by_reviewer": false,
+    "file": "scripts/run_generic_runtime_checks.py",
+    "sha256": "052fd22e9eb3acb069fa6fe0bc8d4685b89df0072e3c758a28f7ef78b648f059",
+    "scope": [
+      "disposable synthetic fixtures only",
+      "loopback test-only configs before launch",
+      "ambient credentials and proxies excluded",
+      "owned-process and identity-checked cleanup",
+      "sanitized output metadata"
+    ]
+  }
+}

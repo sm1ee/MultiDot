@@ -1,5 +1,9 @@
 # Acceptance report: local implementation slice
 
+This is the original bounded-controller checkpoint. For the later configurable
+dots-list implementation and its separate validation groups, see
+[generic setup validation](generic-setup-report.md).
+
 Target: MultiDot 0.1.0, source snapshot identified by the evidence hashes below.
 Upstream pin: `66a761505ff73c5dca730260efcaeb5697db81ad`.
 Evidence date: 2026-10-09 UTC. Exact per-test times, source SHA-256 values,

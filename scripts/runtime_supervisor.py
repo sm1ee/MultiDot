@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fixed MultiDot stack supervision. No shell commands, installation or provisioning.
+"""MultiDot stack supervision. No shell commands, installation or provisioning.
 
 This survives child exits, not host/container loss. Run on Linux in the same
 network namespace as dot2api and the tunnel client. Secrets stay in private files.
@@ -25,7 +25,10 @@ import time
 import urllib.request
 
 SCRIPT = Path(__file__).resolve()
+# Explicit schema-v1 compatibility only. Schema v2 selects each configured ID.
 ROLES = ("dot2api", "b-ingress", "controller", "tunnel-b")
+WORKER_ROLES = ("dot2api", "ingress", "controller", "tunnel")
+ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}")
 BOOT = Path("/proc/sys/kernel/random/boot_id").read_text().strip()
 TUNNEL_SHA256 = "01260ee973d5510861bc32979739561edd33869f99f9f8cd324f6d0da5b2e692"
 
@@ -55,39 +58,137 @@ def alive(record):
     return bool(record and identity(record.get("pid", -1)) == record)
 
 
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("Duplicate configuration key")
+        result[key] = value
+    return result
+
+
 def load(path):
-    c = json.loads(path.read_text())
-    required = {"schema_version", "state_root", "repository", "upstream_python", "upstream_checkout", "event_delivery_enabled",
-                "tunnel_binary", "tunnel_id", "upstream_port", "ingress_port", "health_port",
-                "control_plane_url", "components", "test_only"}
-    if set(c) != required or c["schema_version"] != 1:
-        raise ValueError("Invalid fixed-stack configuration")
+    """Validate exact versioned input, preserving its public dictionary shape."""
+    c = json.loads(path.read_text(), object_pairs_hook=_unique_object)
+    common = {"schema_version", "state_root", "repository", "upstream_python", "upstream_checkout",
+              "event_delivery_enabled", "tunnel_binary", "upstream_port", "control_plane_url", "test_only"}
+    if not isinstance(c, dict) or type(c.get("schema_version")) is not int:
+        raise ValueError("Invalid runtime configuration")
+    version = c["schema_version"]
+    required = common | ({"tunnel_id", "ingress_port", "health_port", "components"} if version == 1 else {"workers"})
+    if version not in (1, 2) or set(c) != required:
+        raise ValueError("Invalid versioned runtime configuration")
     if not isinstance(c["test_only"], bool):
         raise ValueError("test_only must be boolean")
     if not isinstance(c["event_delivery_enabled"], bool) or (c["test_only"] and c["event_delivery_enabled"]):
         raise ValueError("Events delivery must be explicit and disabled in tests")
     for key in ("state_root", "repository", "upstream_python", "upstream_checkout", "tunnel_binary"):
-        if not isinstance(c[key], str) or not Path(c[key]).is_absolute():
+        if not isinstance(c[key], str) or not Path(c[key]).is_absolute() or "\x00" in c[key]:
             raise ValueError("Runtime paths must be explicit and absolute")
-    if not re.fullmatch(r"tunnel_[0-9a-f]{32}", c["tunnel_id"]):
-        raise ValueError("Invalid tunnel ID")
-    if (not isinstance(c["components"], list) or not c["components"] or
-            len(set(c["components"])) != len(c["components"]) or
-            set(c["components"]) - set(ROLES) or "dot2api" not in c["components"]):
-        raise ValueError("Only fixed stack components are supported")
-    if "tunnel-b" in c["components"] and "b-ingress" not in c["components"]:
-        raise ValueError("Tunnel requires fixed B-only ingress")
-    for key in ("upstream_port", "ingress_port", "health_port"):
-        if type(c[key]) is not int or not 1024 <= c[key] <= 65535:
-            raise ValueError("Invalid loopback port")
-    if len({c['upstream_port'], c['ingress_port'], c['health_port']}) != 3:
-        raise ValueError("Ports must differ")
+    ports = [c["upstream_port"]]
+    if version == 1:
+        if (not isinstance(c["components"], list) or not c["components"] or
+                not all(isinstance(role, str) for role in c["components"]) or
+                len(set(c["components"])) != len(c["components"]) or
+                set(c["components"]) - set(ROLES) or "dot2api" not in c["components"]):
+            raise ValueError("Only fixed legacy stack components are supported")
+        if "tunnel-b" in c["components"] and "b-ingress" not in c["components"]:
+            raise ValueError("Legacy tunnel requires legacy ingress")
+        entries = [{"tunnel_id": c["tunnel_id"], "ingress_port": c["ingress_port"], "health_port": c["health_port"]}]
+    else:
+        entries = c["workers"]
+        if not isinstance(entries, list) or not entries:
+            raise ValueError("At least one worker is required")
+        seen_ids = set()
+        synthesis_count = 0
+        for entry in entries:
+            if not isinstance(entry, dict) or set(entry) != {"id", "name", "role", "tunnel_id", "ingress_port", "health_port"}:
+                raise ValueError("Invalid worker configuration")
+            identifier = entry["id"]
+            if not isinstance(identifier, str) or not ID_PATTERN.fullmatch(identifier) or identifier in seen_ids:
+                raise ValueError("Worker IDs must be unique stable identifiers")
+            seen_ids.add(identifier)
+            if (not isinstance(entry["name"], str) or not entry["name"].strip() or
+                    any(ord(ch) < 32 or ord(ch) == 127 for ch in entry["name"])):
+                raise ValueError("Worker display names must be nonempty text")
+            if entry["role"] not in ("worker", "synthesis"):
+                raise ValueError("Unknown worker role")
+            synthesis_count += entry["role"] == "synthesis"
+        if synthesis_count > 1:
+            raise ValueError("At most one synthesis worker is allowed")
+    tunnel_ids = set()
+    for entry in entries:
+        identifier = entry["tunnel_id"]
+        if not isinstance(identifier, str) or not re.fullmatch(r"tunnel_[0-9a-f]{32}", identifier) or identifier in tunnel_ids:
+            raise ValueError("Tunnel IDs must be valid and unique")
+        tunnel_ids.add(identifier)
+        ports.extend((entry["ingress_port"], entry["health_port"]))
+    if any(type(port) is not int or not 1024 <= port <= 65535 for port in ports):
+        raise ValueError("Invalid loopback port")
+    if len(set(ports)) != len(ports):
+        raise ValueError("All runtime ports must differ")
     if c["control_plane_url"] != "https://api.openai.com":
-        if not c["test_only"] or not re.fullmatch(r"http://127\.0\.0\.1:[0-9]+", c["control_plane_url"]):
+        if (not c["test_only"] or not isinstance(c["control_plane_url"], str) or
+                not re.fullmatch(r"http://127\.0\.0\.1:[0-9]+", c["control_plane_url"])):
             raise ValueError("Control plane must be official or an explicit local test")
+        if not 1 <= int(c["control_plane_url"].rsplit(":", 1)[1]) <= 65535:
+            raise ValueError("Invalid local control-plane port")
     if c["test_only"] and c["control_plane_url"] == "https://api.openai.com":
         raise ValueError("Test mode must not contact the external control plane")
     return c
+
+
+def worker_entries(c):
+    """Return configured workers; the fixed B entry is legacy-v1-only."""
+    if c["schema_version"] == 2:
+        return c["workers"]
+    return [{"id": "dot-b", "name": "dot-b", "role": "worker", "tunnel_id": c["tunnel_id"],
+             "ingress_port": c["ingress_port"], "health_port": c["health_port"]}]
+
+
+def get_worker(c, worker_id):
+    for entry in worker_entries(c):
+        if entry["id"] == worker_id:
+            return entry
+    raise ValueError("Worker ID is not configured")
+
+
+def worker_secret_path(c, worker_id, kind):
+    get_worker(c, worker_id)
+    if kind not in ("runtime-api-key", "worker-authorization"):
+        raise ValueError("Unknown credential file role")
+    root = Path(c["state_root"]) / "secrets"
+    if c["schema_version"] == 1:
+        return root / ("worker-b-authorization" if kind == "worker-authorization" else kind)
+    return root / worker_id / kind
+
+
+def tunnel_config_path(c, worker_id):
+    get_worker(c, worker_id)
+    name = "b" if c["schema_version"] == 1 else worker_id
+    return Path(c["state_root"]) / "config" / f"tunnel-{name}.yaml"
+
+
+def component_specs(c):
+    """Fixed executable roles keyed by stable per-worker process identities."""
+    specs = {"dot2api": {"role": "dot2api", "worker_id": None, "port": c["upstream_port"]}}
+    if c["schema_version"] == 1:
+        legacy = {"b-ingress": {"role": "b-ingress", "worker_id": "dot-b", "port": c["ingress_port"]},
+                  "controller": {"role": "controller", "worker_id": None, "port": None},
+                  "tunnel-b": {"role": "tunnel-b", "worker_id": "dot-b", "port": c["health_port"]}}
+        specs.update({key: value for key, value in legacy.items() if key in c["components"]})
+        return specs
+    for entry in c["workers"]:
+        specs["ingress:" + entry["id"]] = {"role": "ingress", "worker_id": entry["id"], "port": entry["ingress_port"]}
+    specs["controller"] = {"role": "controller", "worker_id": None, "port": None}
+    for entry in c["workers"]:
+        specs["tunnel:" + entry["id"]] = {"role": "tunnel", "worker_id": entry["id"], "port": entry["health_port"]}
+    return specs
+
+
+def ingress_component(c, worker_id):
+    get_worker(c, worker_id)
+    return "b-ingress" if c["schema_version"] == 1 else "ingress:" + worker_id
 
 
 def private_dir(path):
@@ -118,22 +219,30 @@ def render(c):
     for p in (root, root / "run", root / "logs", root / "controller", root / "secrets", root / "config"):
         private_dir(p)
     # JSON is a YAML 1.2 subset, accepted by the pinned client's YAML parser.
-    tunnel = {
-        "config_version": 1,
-        "control_plane": {"base_url": c["control_plane_url"], "tunnel_id": c["tunnel_id"],
-                          "api_key": "file:" + str(root / "secrets/runtime-api-key"),
-                          "poll_channels": ["main"], "max_inflight_requests": 2},
-        "health": {"listen_addr": f"127.0.0.1:{c['health_port']}",
-                   "url_file": str(root / "run/tunnel-health-url")},
-        "admin_ui": {"open_browser": False, "log_buffer_events": 100},
-        "log": {"level": "warn", "format": "json"},
-        "mcp": {"server_urls": [{"channel": "main", "url": f"http://127.0.0.1:{c['ingress_port']}/mcp"}],
-                "extra_headers": {"Authorization": "file:" + str(root / "secrets/worker-b-authorization")},
-                "startup_wait_timeout": "30s", "max_concurrent_requests": 1},
-    }
-    write_json(root / "config/tunnel-b.yaml", tunnel)
-    write_json(root / "config/controller.json", {"mode": "native", "base_url": f"http://127.0.0.1:{c['upstream_port']}",
-        "producer": "hub-producer", "token_env": "MULTIDOT_PRODUCER_TOKEN", "projects": ["demo"]})
+    for entry in worker_entries(c):
+        identifier = entry["id"]
+        if c["schema_version"] == 2:
+            private_dir(root / "secrets" / identifier)
+        health_name = "tunnel-health-url" if c["schema_version"] == 1 else f"tunnel-{identifier}-health-url"
+        tunnel = {
+            "config_version": 1,
+            "control_plane": {"base_url": c["control_plane_url"], "tunnel_id": entry["tunnel_id"],
+                              "api_key": "file:" + str(worker_secret_path(c, identifier, "runtime-api-key")),
+                              "poll_channels": ["main"], "max_inflight_requests": 2},
+            "health": {"listen_addr": f"127.0.0.1:{entry['health_port']}",
+                       "url_file": str(root / "run" / health_name)},
+            "admin_ui": {"open_browser": False, "log_buffer_events": 100},
+            "log": {"level": "warn", "format": "json"},
+            "mcp": {"server_urls": [{"channel": "main", "url": f"http://127.0.0.1:{entry['ingress_port']}/mcp"}],
+                    "extra_headers": {"Authorization": "file:" + str(worker_secret_path(c, identifier, "worker-authorization"))},
+                    "startup_wait_timeout": "30s", "max_concurrent_requests": 1},
+        }
+        write_json(tunnel_config_path(c, identifier), tunnel)
+    controller = {"mode": "native", "base_url": f"http://127.0.0.1:{c['upstream_port']}",
+                  "producer": "hub-producer", "token_env": "MULTIDOT_PRODUCER_TOKEN", "projects": ["demo"]}
+    if c["schema_version"] == 2:
+        controller["workers"] = [{key: entry[key] for key in ("id", "name", "role")} for entry in c["workers"]]
+    write_json(root / "config/controller.json", controller)
 
 
 def preflight(c):
@@ -154,44 +263,59 @@ def preflight(c):
     # Deliberately do not initialize storage or issue any credentials here.
     if not (root / "upstream/encryption.key").is_file() or not (root / "upstream/dot2api.sqlite3").is_file():
         raise ValueError("Approved upstream provisioning is required")
-    if "tunnel-b" in c["components"]:
-        secret(root / "secrets/runtime-api-key")
-    if "b-ingress" in c["components"]:
-        if not secret(root / "secrets/worker-b-authorization").startswith("Bearer "):
-            raise ValueError("B authorization file must contain the complete Bearer header")
-    if "controller" in c["components"]:
-        secret(root / "secrets/producer-token")
+    for component in component_specs(c).values():
+        if component["role"] in ("tunnel", "tunnel-b"):
+            secret(worker_secret_path(c, component["worker_id"], "runtime-api-key"))
+        elif component["role"] in ("ingress", "b-ingress"):
+            header = secret(worker_secret_path(c, component["worker_id"], "worker-authorization"))
+            if not header.startswith("Bearer ") or not header[7:] or header[7:].startswith("Bearer "):
+                raise ValueError("Worker authorization must contain the complete Bearer header")
+        elif component["role"] == "controller":
+            secret(root / "secrets/producer-token")
 
 
-def binding(c):
-    """Read-only HTTP boundary check; never opens upstream storage.
+def binding(c, worker_id=None):
+    """Read-only HTTP boundary check. Never opens upstream storage.
 
-    Exact principal/tenant assignment still requires the provisioning receipt.
-    This fails closed on broader submit scope or access to the configured A/C
-    queues, missing B read permission, and unavailable/rejected upstream reads.
+    Every configured worker has exactly the worker HTTP capabilities, access to
+    its own stable-ID queue, and no access to any other configured worker queue.
+    Principal/tenant assignment still requires the provisioning receipt.
     """
     import urllib.error
-    header = secret(Path(c["state_root"]) / "secrets/worker-b-authorization")
-    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    selected = worker_entries(c) if worker_id is None else [get_worker(c, worker_id)]
+    queues = [entry["id"] for entry in worker_entries(c)] if c["schema_version"] == 2 else ["dot-b", "dot-a", "dot-c"]
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
     base = f"http://127.0.0.1:{c['upstream_port']}"
-    request = urllib.request.Request(base + "/v1/capabilities", headers={"Authorization": header})
-    with opener.open(request, timeout=2) as response:
-        names = {tool["name"] for tool in json.loads(response.read(262145))["tools"]}
     expected = {"get_task", "list_tasks", "claim_task", "heartbeat_task", "complete_task", "release_task"}
-    if names != expected:
-        raise ValueError("Worker HTTP capabilities differ from bounded B contract")
-    for queue in ("dot-b", "dot-a", "dot-c"):
-        request = urllib.request.Request(base + "/v1/tools/list_tasks", data=json.dumps({"queue": queue, "limit": 1}).encode(),
-            headers={"Authorization": header, "Content-Type": "application/json"}, method="POST")
-        try:
-            with opener.open(request, timeout=2) as response:
-                response.read(262145)
-                code = response.status
-        except urllib.error.HTTPError as error:
-            code = error.code
-            error.close()
-        if code != (200 if queue == "dot-b" else 403):
-            raise ValueError("Worker HTTP queue boundary differs from B-only contract")
+    for entry in selected:
+        header = secret(worker_secret_path(c, entry["id"], "worker-authorization"))
+        request = urllib.request.Request(base + "/v1/capabilities", headers={"Authorization": header})
+        with opener.open(request, timeout=2) as response:
+            raw = response.read(262145)
+            if response.status != 200 or len(raw) > 262144:
+                raise ValueError("Invalid worker HTTP capabilities response")
+            tools = json.loads(raw)["tools"]
+            names = {tool["name"] for tool in tools}
+        if names != expected or len(tools) != len(expected):
+            raise ValueError("Worker HTTP capabilities differ from bounded worker contract")
+        for queue in queues:
+            request = urllib.request.Request(base + "/v1/tools/list_tasks", data=json.dumps({"queue": queue, "limit": 1}).encode(),
+                headers={"Authorization": header, "Content-Type": "application/json"}, method="POST")
+            try:
+                with opener.open(request, timeout=2) as response:
+                    if len(response.read(262145)) > 262144:
+                        raise ValueError("Worker queue response exceeds size limit")
+                    code = response.status
+            except urllib.error.HTTPError as error:
+                code = error.code
+                error.close()
+            if code != (200 if queue == entry["id"] else 403):
+                raise ValueError("Worker HTTP queue boundary differs from its configured queue")
+
+
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
 
 
 def child_environment(c):
@@ -206,11 +330,20 @@ def child_environment(c):
     env["NO_PROXY"] = env["no_proxy"] = ",".join(sorted(bypass))
     env["PYTHONPATH"] = str(Path(c["repository"]) / "src")
     env.update({"PYTHONUNBUFFERED": "1", "DOT2API_HOST": "127.0.0.1", "DOT2API_PORT": str(c["upstream_port"]),
-                "DOT2API_CAPABILITY_URLS": "0", "DOT2API_WORKER": "1" if c["event_delivery_enabled"] else "0", "DOT2API_QUEUE": "dot-b"})
+                "DOT2API_CAPABILITY_URLS": "0", "DOT2API_WORKER": "1" if c["event_delivery_enabled"] else "0"})
+    if c["schema_version"] == 1:
+        env["DOT2API_QUEUE"] = "dot-b"
     return env
 
 
-def worker(c, role, parent):
+def worker(c, role, parent, worker_id=None):
+    # Selection is restricted to configured, fixed-role executables. Neither
+    # display names nor arbitrary command arguments become executable input.
+    matches = [spec for spec in component_specs(c).values() if spec["role"] == role and
+               (spec["worker_id"] == worker_id or (c["schema_version"] == 1 and worker_id is None))]
+    if len(matches) != 1:
+        raise ValueError("Worker requires one configured fixed role and ID")
+    worker_id = matches[0]["worker_id"]
     # Linux parent-death cleanup, including supervisor SIGKILL. Never signal a
     # stale recorded PID; kernel ties this to the actual parent relationship.
     if ctypes.CDLL(None, use_errno=True).prctl(1, signal.SIGKILL, 0, 0, 0):
@@ -221,14 +354,15 @@ def worker(c, role, parent):
     env = child_environment(c)
     if role == "dot2api":
         argv = [c["upstream_python"], "-m", "dot2api.cli", "--data-dir", str(root / "upstream"), "serve"]
-    elif role == "b-ingress":
-        argv = [c["upstream_python"], str(SCRIPT.parent / "runtime_b_ingress.py"), "--config", str(CONFIG_PATH)]
+    elif role in ("ingress", "b-ingress"):
+        argv = [c["upstream_python"], str(SCRIPT.parent / "runtime_ingress.py"), "--config", str(CONFIG_PATH),
+                "--worker-id", worker_id]
     elif role == "controller":
         env["MULTIDOT_PRODUCER_TOKEN"] = secret(root / "secrets/producer-token")
         argv = [c["upstream_python"], "-m", "multidot", "--config", str(root / "config/controller.json"),
                 "--db", str(root / "controller/hub.sqlite"), "start", "--interval", "1"]
     else:
-        argv = [c["tunnel_binary"], "run", "--config", str(root / "config/tunnel-b.yaml")]
+        argv = [c["tunnel_binary"], "run", "--config", str(tunnel_config_path(c, worker_id))]
     os.chdir(c["repository"])
     os.execve(argv[0], argv, env)
 
@@ -236,7 +370,7 @@ def worker(c, role, parent):
 def probe(port, route="/readyz"):
     try:
         request = urllib.request.Request(f"http://127.0.0.1:{port}{route}")
-        with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(request, timeout=0.3) as response:
+        with urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect()).open(request, timeout=0.3) as response:
             return response.status == 200
     except (OSError, ValueError):
         return False
@@ -288,15 +422,16 @@ def status(c):
     s["observed_at"] = time.time()
     s["os_autostart"] = False
     s["host_lifetime_guarantee"] = False
+    specs = component_specs(c)
     for role, child in s.get("children", {}).items():
         if other_namespace:
             child["running"] = None
             child["ready"] = None
             continue
         child["running"] = alive(child.get("identity"))
-        if child["running"] and role in ("dot2api", "b-ingress", "tunnel-b"):
-            port = c[{"dot2api": "upstream_port", "b-ingress": "ingress_port", "tunnel-b": "health_port"}[role]]
-            child["ready"] = owned_listener(child.get("identity"), port) and probe(port)
+        port = specs.get(role, {}).get("port")
+        child["ready"] = bool(child["running"] and owned_listener(child.get("identity"), port) and probe(port)) if port else None
+
     return s
 
 
@@ -312,7 +447,8 @@ def supervisor(c):
         prior = read_state(c)
         if any(alive(ch.get("identity")) for ch in prior.get("children", {}).values()):
             raise ValueError("Previous owned children still draining; inspect status")
-        if any(not free_port(c[key]) for key in ("upstream_port", "ingress_port", "health_port")):
+        specs = component_specs(c)
+        if any(not free_port(spec["port"]) for spec in specs.values() if spec["port"]):
             raise ValueError("A fixed service port is occupied; refusing unrelated listeners")
         stopping = False
         def stop(_sig, _frame):
@@ -327,24 +463,25 @@ def supervisor(c):
         def event(action, role=None, **fields):
             log.info(json.dumps({"at": time.time(), "event": action, "role": role, **fields}))
         processes = {}
-        meta = {role: {"restarts": 0, "next_start": 0, "failures": 0} for role in c["components"]}
+        meta = {role: {"restarts": 0, "next_start": 0, "failures": 0} for role in specs}
         s = {"supervisor": identity(os.getpid()), "test_only": c["test_only"], "state_root": str(root), "children": meta}
         event("supervisor_started")
         def ready(role):
             p = processes.get(role)
             if p is None or p.poll() is not None:
                 return False
-            key = {"dot2api": "upstream_port", "b-ingress": "ingress_port"}[role]
-            return owned_listener(meta[role].get("identity"), c[key]) and probe(c[key])
+            port = specs[role]["port"]
+            return bool(port and owned_listener(meta[role].get("identity"), port) and probe(port))
         try:
             while not stopping:
-                for role in ROLES:
-                    if role not in meta:
-                        continue
+                for role, spec in specs.items():
+                    is_tunnel = spec["role"] in ("tunnel", "tunnel-b")
+                    is_ingress = spec["role"] in ("ingress", "b-ingress")
+                    ingress = ingress_component(c, spec["worker_id"]) if is_tunnel else None
                     row = meta[role]
                     process = processes.get(role)
-                    if (role == "tunnel-b" and process is not None and process.poll() is None
-                            and (not ready("dot2api") or not ready("b-ingress"))):
+                    if (is_tunnel and process is not None and process.poll() is None
+                            and (not ready("dot2api") or not ready(ingress))):
                         process.terminate()
                     if process is not None and process.poll() is not None:
                         elapsed = time.monotonic() - row.pop("started_monotonic")
@@ -362,31 +499,33 @@ def supervisor(c):
                         continue
                     if role != "dot2api" and not ready("dot2api"):
                         continue
-                    if role == "tunnel-b" and not ready("b-ingress"):
+                    if is_tunnel and not ready(ingress):
                         continue
-                    if role == "b-ingress":
+                    if is_ingress or is_tunnel:
                         try:
-                            binding(c)
+                            binding(c, spec["worker_id"])
                         except Exception:
-                            row.update({"failures": 8, "needs_operator_review": True, "reason": "B HTTP authorization boundary not verified"})
+                            row.update({"failures": 8, "needs_operator_review": True, "reason": "Worker HTTP authorization boundary not verified"})
                             event("binding_rejected", role)
                             continue
-                    p = subprocess.Popen([sys.executable, str(SCRIPT), "--config", str(CONFIG_PATH), "_worker", "--role", role, "--parent", str(os.getpid())],
-                        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+                    argv = [sys.executable, str(SCRIPT), "--config", str(CONFIG_PATH), "_worker", "--role", spec["role"], "--parent", str(os.getpid())]
+                    if spec["worker_id"] is not None:
+                        argv.extend(("--worker-id", spec["worker_id"]))
+                    p = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                         stderr=subprocess.DEVNULL, start_new_session=True)
                     processes[role] = p
                     row.update({"identity": identity(p.pid), "started_monotonic": time.monotonic()})
                     event("child_started", role, pid=p.pid)
                 s["updated_at"] = time.time()
                 s["last_reported_health"] = {role: {"running": p.poll() is None,
-                    "ready": ready(role) if role in ("dot2api", "b-ingress") else
-                    (owned_listener(meta[role].get("identity"), c["health_port"]) and probe(c["health_port"])) if role == "tunnel-b" else None}
+                    "ready": ready(role) if specs[role]["port"] else None}
                     for role, p in processes.items()}
                 write_json(root / "run/status.json", s)
                 time.sleep(0.2)
         finally:
             # Stop ingress, then dispatch, then storage. Each child owns its
             # session; never kill an unverified or reused recorded PID/group.
-            for role in reversed(ROLES):
+            for role in reversed(specs):
                 p = processes.get(role)
                 if p is not None and p.poll() is None:
                     p.terminate()
@@ -400,6 +539,7 @@ def supervisor(c):
             s.update({"stopped_at": time.time(), "updated_at": time.time()})
             write_json(root / "run/status.json", s)
             event("supervisor_stopped")
+            log.removeHandler(handler)
             handler.close()
     return 0
 
@@ -410,7 +550,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("command", choices=("render", "check", "start", "run", "status", "reconcile", "stop", "_worker", "_binding"))
-    parser.add_argument("--role", choices=ROLES)
+    parser.add_argument("--role", choices=tuple(dict.fromkeys((*WORKER_ROLES, *ROLES))))
+    parser.add_argument("--worker-id")
     parser.add_argument("--parent", type=int)
     args = parser.parse_args()
     CONFIG_PATH = args.config.resolve()
@@ -419,9 +560,9 @@ def main():
         if args.command == "_worker":
             if args.role is None or args.parent is None:
                 raise ValueError("Worker requires its fixed role and parent")
-            return worker(c, args.role, args.parent)
+            return worker(c, args.role, args.parent, args.worker_id)
         if args.command == "_binding":
-            binding(c)
+            binding(c, args.worker_id)
             return 0
         if args.command == "render":
             render(c)
@@ -443,7 +584,7 @@ def main():
                         signal.pidfd_send_signal(fd, signal.SIGTERM)
                 finally:
                     os.close(fd)
-                deadline = time.monotonic() + 230
+                deadline = time.monotonic() + 55 * len(component_specs(c)) + 10
                 while alive(old) and time.monotonic() < deadline:
                     time.sleep(0.1)
                 if alive(old):

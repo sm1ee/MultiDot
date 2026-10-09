@@ -27,6 +27,9 @@ from dot2api.store import Store
 import runtime_supervisor as runtime
 
 ROOT = Path(__file__).resolve().parents[1]
+# Direct script execution puts scripts/ first, where the friendly multidot.py
+# launcher must not shadow the actual multidot package used below.
+sys.path.insert(0, str(ROOT / "src"))
 records = []
 
 

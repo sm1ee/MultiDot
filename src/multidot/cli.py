@@ -16,7 +16,7 @@ from . import __version__
 from .controller import Controller
 from .dot2api_adapter import NativeTaskAdapter
 from .mock import MockNative, complete_mock_task
-from .models import AccessError, ConflictError, ValidationError, canonical, now, redact
+from .models import AccessError, ConflictError, ValidationError, canonical, fields, now, redact
 
 
 class OfflineAdapter:
@@ -122,11 +122,12 @@ def main(argv=None):
             if not args.config:
                 raise ValidationError("Supply --config with explicit project allowlist and target")
             config = read_json(args.config)
-            if set(config) != {"mode", "base_url", "producer", "token_env", "projects"} or config["mode"] != "native":
+            fields(config, ("mode", "base_url", "producer", "token_env", "projects"), ("workers",))
+            if config["mode"] != "native":
                 raise ValidationError("Invalid controller configuration")
             needs_network = args.command in ("start", "tick") or (args.command == "recover" and args.apply) or (args.command == "request-cancel" and bool(os.environ.get(config["token_env"])))
             adapter = NativeTaskAdapter(config["base_url"], os.environ.get(config["token_env"], ""), config["producer"]) if needs_network else OfflineAdapter(config["base_url"], config["producer"])
-            controller = Controller(args.db, adapter, config["projects"])
+            controller = Controller(args.db, adapter, config["projects"], workers=config.get("workers"))
             try:
                 if args.command == "bootstrap":
                     controller.bootstrap(args.project, args.goal)
