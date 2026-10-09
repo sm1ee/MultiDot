@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "state_root": "/ABS/PATH/multidot-state",
+  "repository": "/ABS/PATH/MultiDot",
+  "upstream_checkout": "/ABS/PATH/dot2api-pinned",
+  "upstream_python": "/ABS/PATH/dot2api-venv/bin/python",
+  "tunnel_binary": "/ABS/PATH/tunnel-client-v0.0.16/tunnel-client",
+  "tunnel_id": "tunnel_00000000000000000000000000000000",
+  "upstream_port": 8788,
+  "ingress_port": 8789,
+  "health_port": 8790,
+  "control_plane_url": "https://api.openai.com",
+  "components": [
+    "dot2api",
+    "b-ingress",
+    "controller",
+    "tunnel-b"
+  ],
+  "event_delivery_enabled": false,
+  "test_only": false
+}

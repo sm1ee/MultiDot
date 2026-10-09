@@ -186,7 +186,7 @@ def main(argv=None):
                             stopping = True
                         signal.signal(signal.SIGTERM, stop)
                         signal.signal(signal.SIGINT, stop)
-                        controller.recover(apply=True)
+                        controller.recover_crashed_sends()
                         while not stopping:
                             controller.tick()
                             time.sleep(args.interval)

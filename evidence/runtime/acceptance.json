@@ -1,0 +1,44 @@
+{
+  "classification": "LOCAL_RUNTIME_CONTRACT",
+  "at": "2026-10-09T05:26:45.749675+00:00",
+  "passed": true,
+  "checks": [
+    "missing-key gate fails closed; private files and exact pinned installation pass",
+    "actual dot2api, controller, B ingress and pinned tunnel-client start",
+    "managed foreground session retained stack throughout observation window",
+    "idempotent repeated start retains one supervisor",
+    "official tunnel client resolves runtime API key file to local fake plane",
+    "actual pinned MCP initialize/tools/list/tools/call; B-only tools/queue and ingress auth/path rejection",
+    "dot2api SIGKILL triggers owned child restart",
+    "b-ingress SIGKILL triggers owned child restart",
+    "controller SIGKILL triggers owned child restart",
+    "tunnel-b SIGKILL triggers owned child restart",
+    "supervisor SIGKILL causes kernel parent-death cleanup of children",
+    "inspection-only reconcile and manual supervisor relaunch",
+    "controller database and worker pause survive child/supervisor restarts",
+    "safe shutdown closes all owned listeners and preserves storage",
+    "lifecycle logs contain no credential or header values"
+  ],
+  "control_plane": "local fake only",
+  "real_credentials": false,
+  "real_tunnel_connected": false,
+  "real_dot_jobs": false,
+  "ephemeral_state_removed": true,
+  "os_autostart": false,
+  "supervisor_automatic_restart": false,
+  "host_lifetime_guarantee": false,
+  "fake_plane_requests": 118,
+  "source_sha256": {
+    "scripts/runtime_b_ingress.py": "d13907ad08e3dba17c083b993a700250e0cf38cc7146fd51cea13e467d1874e3",
+    "scripts/runtime_supervisor.py": "2edc654b70bff2a163c7e76eb71e9d2e2cb1375a6479c1fa2e528348f5a79be2",
+    "scripts/runtime_verify_install.py": "e77c93eba1751e88dcc54f1e8c1ff332f6fdc6d93f6b48b9330730ce4659625f",
+    "scripts/run_runtime_checks.py": "ce005d8de00d402f5218eaf1e20914e3dee253e7bcd242de0f1b870977ad6a79"
+  },
+  "official_tunnel": {
+    "tag": "v0.0.16",
+    "version": "0.0.16+5f99daabd4aa4a77049e6d81d54a0d8c18335397",
+    "archive_sha256": "d60cdba019bce451bcc3a15478cc5b9cb11270b049f5b56ea39a80b517f8b117",
+    "executable_sha256": "01260ee973d5510861bc32979739561edd33869f99f9f8cd324f6d0da5b2e692",
+    "source": "https://github.com/openai/tunnel-client/releases/tag/v0.0.16"
+  }
+}

@@ -397,6 +397,34 @@ class Controller:
             except UpstreamRejected as exc:
                 self._read_failure(a["id"], f"CANCEL_HTTP_{exc.status}", permanent=True, cancellation=True)
 
+    def recover_crashed_sends(self):
+        """Repair interrupted sends without reopening operator-review circuit breakers.
+
+        Startup may retry only the immutable intent already reserved before a
+        crash. Explicit ``recover --apply`` remains the operator's separate
+        decision to reopen halted observations or cancellations. This method
+        performs no network I/O and never resets counters, halts, or pauses.
+        """
+        plan = []
+        with self.store.transaction() as db:
+            rows = db.execute("SELECT a.*,o.sends,j.project_id,j.cancel_requested_at FROM attempts a JOIN dispatch_outbox o ON o.attempt_id=a.id JOIN jobs j ON j.id=a.job_id WHERE o.state='SENDING'").fetchall()
+            for current in rows:
+                if (current["project_id"] not in self.allowed_projects or current["upstream_id"] is not None
+                        or current["cancel_requested_at"] is not None or current["observation_halted"]
+                        or current["cancel_halted"]):
+                    continue
+                if current["sends"] >= 5:
+                    db.execute("UPDATE dispatch_outbox SET state='REVIEW',last_error='SUBMISSION_UNCERTAIN_RETRY_BOUND' WHERE attempt_id=?", (current["id"],))
+                    db.execute("UPDATE steps SET state='NEEDS_REVIEW',error_code='SUBMISSION_UNCERTAIN_RETRY_BOUND' WHERE job_id=? AND id=?", (current["job_id"], current["step_id"]))
+                    self._audit(db, current["job_id"], "recover_crashed_send", "SUBMISSION_UNCERTAIN_RETRY_BOUND")
+                    self._refresh(db, current["job_id"])
+                    plan.append({"attempt_id": current["id"], "action": "review_exhausted_submission"})
+                elif current["sends"] > 0:
+                    db.execute("UPDATE dispatch_outbox SET state='RETRY',next_try=0 WHERE attempt_id=?", (current["id"],))
+                    self._audit(db, current["job_id"], "recover_crashed_send", "EXACT_STORED_REQUEST_ONLY")
+                    plan.append({"attempt_id": current["id"], "action": "retry_exact_stored_request"})
+        return {"plan": plan, "external_work_reexecuted": False}
+
     def recover(self, apply=False):
         rows = self.db.execute("SELECT a.id,a.job_id,o.state,o.sends,a.upstream_id,j.project_id FROM attempts a JOIN dispatch_outbox o ON o.attempt_id=a.id JOIN jobs j ON j.id=a.job_id WHERE o.state IN ('SENDING','RETRY','REVIEW')").fetchall()
         plan = [{"attempt_id": r["id"], "action": "query_known_task" if r["upstream_id"] else "review_cancelled_uncertain_send" if self._job(r["job_id"])["cancel_requested_at"] else "review_exhausted_submission" if r["sends"] >= 5 else "retry_exact_stored_request" if r["state"] != "REVIEW" else "operator_review", "state": r["state"]} for r in rows if r["project_id"] in self.allowed_projects]
