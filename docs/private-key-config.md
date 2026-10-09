@@ -8,24 +8,30 @@ python3 scripts/multidot.py setup
 python3 scripts/multidot.py run
 ```
 
-`setup` opens an interactive wizard. Enter a name, an existing tunnel ID, and a
-hidden runtime API key for each dot; choose whether to add another dot
+`setup` opens a terminal wizard. Enter a name, an existing tunnel ID, and a
+runtime API key masked with `*` for each dot; choose whether to add another dot
 (default: no). There is no fixed dot count. New users do not need to run `init`
 or manually edit JSON. The wizard creates regular workers and requires a
-terminal that supports hidden key entry. It refuses non-terminal input and
-does not fall back to displaying the key.
+terminal that supports masked key entry on Python 3.11+. It refuses non-terminal
+input and does not fall back to displaying the key.
+
+For a same-machine browser form, run `python3 scripts/multidot.py setup --web`,
+open its printed loopback URL yourself, and add or remove dot rows with name,
+tunnel ID and password-style key fields. It does not open a browser for you.
+See [web form and browser trust](#web-form-and-browser-trust) before using it.
 
 The wizard collects the full configuration before writing it. One final
 `Save and prepare local setup? [y/N]` confirmation explains the config and state
 destinations, plaintext key storage, and local internal credential creation.
-The default answer is no. Approval saves a complete private config, then runs
-local preparation; it does not authorize or start tunnel connections.
+The terminal default is no. The web form's **Save and prepare local setup**
+button provides the same single confirmation. Approval saves a complete private
+config, then runs local preparation; it does not authorize or start tunnel connections.
 
 The preferred config is a list of dots, each with just `name`, `tunnel_id` and
 `runtime_api_key`. The public [template](../config/dots.example.json) has blank
-values. The wizard may fill the reviewed blank template created by `init`, but
-refuses a populated existing config without changing it. `init` remains an
-optional blank-template command and never overwrites an existing file.
+values. Both entry modes may fill only the exact reviewed blank template
+created by `init`, and refuse a populated existing config without changing it.
+`init` remains an optional blank-template command and never overwrites an existing file.
 
 Private configs use owner-only 0600 permissions. At the default location, a
 missing `~/.multidot` directory is created with 0700 permissions, but the user's
@@ -63,26 +69,29 @@ The intended deployment remains **dot's own cloud runtime**, not the user's
 Mac. A supported private terminal/input route for the user into that runtime
 has not yet been verified. A native terminal and an executor may have different
 home directories and PID/network namespaces. Creating a blank config in one
-does not prove private access or runtime readiness in the other. No real wizard
-setup or tunnel connection has run. This guide does not resolve that access
-requirement.
+does not prove private access or runtime readiness in the other. The web form
+does not establish native cloud-browser access either. No real setup or tunnel
+connection has run. This guide does not resolve that access requirement.
 
 ## Interactive and file-based setup
 
-- `setup` opens the wizard at the default private config path.
+- `setup` opens the terminal wizard at the default private config path.
+- `setup --web` serves the same-machine web form at the default config path.
 - `setup --non-interactive` loads an existing default config without prompts.
 - `setup --config /ABS/PATH/dots.private.json` preserves the non-interactive
   file-based flow for an explicit path.
 - `setup --interactive --config /ABS/PATH/dots.private.json` chooses the wizard
   with a custom private destination.
+- `setup --web --config /ABS/PATH/dots.private.json` uses a custom web-form
+  destination.
 
-`--interactive` and `--non-interactive` are mutually exclusive. A file-based
-setup requires prior authorization for local credential creation. An existing
-populated config is reused through this mode, not overwritten by the wizard.
+`--web`, `--interactive` and `--non-interactive` are mutually exclusive.
+File-based setup requires prior authorization for local credential creation. An existing
+populated config is reused through this mode, not overwritten by either form.
 The optional `init` command creates only a blank template for a file workflow;
 it does not issue credentials or run setup.
 
-Do not edit or replace the destination while a wizard is open. Its advisory
+Do not edit or replace the destination while either form is open. Its advisory
 lock coordinates cooperating wizard processes only; it cannot prevent a
 separate editor or other same-user process from writing. Concurrent editing is
 unsupported, even when the destination was initially a blank template.
@@ -97,6 +106,31 @@ state publication are separate steps, not one all-or-nothing transaction.
 SIGKILL, abrupt process death, or host loss cannot guarantee temporary-file
 cleanup or publication durability. Review the stopped installation privately
 before retrying an uncertain result.
+
+## Web form and browser trust
+
+`setup --web` serves only `127.0.0.1` on a temporary port and prints a bare
+`http://127.0.0.1:<port>/` URL. Open it manually in a trusted browser on the same
+machine and in the same network context. The form expires after about 10
+minutes; keep the command running while using it. It does not launch a browser
+or provide remote access. Do not expose, forward or proxy the listener, and do
+not bypass a browser or security block.
+
+The form uses password-style inputs, an HttpOnly session cookie, CSRF checks,
+and exact Host/Origin validation. Keys are not placed in URLs, application
+logs or localStorage. Saving requires the confirmed POST; merely opening a URL
+does not save. After saving, check the terminal for the local preparation
+result. These controls do not isolate a hostile same-user OS process,
+browser extension, browser profile or session recorder. Use a trusted private
+browser; masking is not encryption, and browser memory or clipboard history
+can still contain entered keys. Saved config and runtime credentials remain
+plaintext with owner-only permissions.
+
+The previous fake-only native cloud-browser POST was blocked with
+`ERR_BLOCKED_BY_CLIENT` and was not retried. The new form's validation is limited
+to source and synthetic HTTP fixtures, not native cloud-browser acceptance or
+real credential entry. Do not enter real keys until a supported private route
+and the required setup authorization are in place.
 
 ## Which external key goes here?
 
@@ -128,8 +162,8 @@ silent renewal, overwrite or key rotation.
 
 `setup` requires the already-installed, verified toolchain described in the
 [runtime guide](persistent-runtime.md#prerequisites-and-paths). It creates local
-state and credentials; it does not download software, start services, create
-OpenAI tunnels or authenticate any remote account.
+state and credentials; it does not download software, start runtime services,
+create OpenAI tunnels or authenticate any remote account.
 
 A fresh installation gets stable UUID-based queue/worker IDs and a tenant,
 recorded in its private manifest. On a stopped installation, file-based setup
@@ -157,8 +191,10 @@ repairs them without reissuing identities or tokens.
 ## Plaintext and handling limits
 
 Private JSON and generated key files are **plaintext, not a secrets vault**.
-Hidden terminal entry avoids displaying the key; it does not encrypt storage
-or isolate the OS account. Anyone with access to that account, privileged
+Terminal `*` masking and browser password fields avoid displaying the key;
+they reveal its length, do not encrypt storage, and do not isolate the OS
+account. Terminal masking does not fix clipboard transfer between separate
+terminal/browser environments. Anyone with access to that account, privileged
 processes, recovery files, or backups may obtain the keys. Setup does not erase
 the filled JSON. Use a trusted private terminal without shared session
 recording. For advanced file edits, use a trusted editor without cloud

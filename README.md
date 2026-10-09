@@ -23,16 +23,26 @@ python3 scripts/multidot.py setup
 python3 scripts/multidot.py run
 ```
 
-`setup` opens a wizard: enter a name, tunnel ID and **hidden API key**, then
-choose whether to add another dot (default: no). Repeat for as many dots as you
-need; each is a regular `worker`. You do not need to run `init` or edit JSON
-first. The wizard requires a terminal that supports hidden entry and refuses
-to fall back to visible key input or piped input.
+`setup` opens a terminal wizard: enter a name, tunnel ID and **API key masked
+with `*`**, then choose whether to add another dot (default: no). Repeat for as
+many dots as you need; each is a regular `worker`. You do not need to run `init`
+or edit JSON first. Masked entry works on Python 3.11+ and refuses visible-key
+fallback or piped input. The mask reveals key length and does not fix clipboard
+transfer between separate terminals or browsers.
 
-After collecting all entries, one final `Save and prepare local setup? [y/N]`
+For an explicit browser form, use `python3 scripts/multidot.py setup --web`.
+It prints a bare `http://127.0.0.1:<port>/` URL on a temporary local port, without
+opening a browser. Open it yourself in a trusted browser on the **same machine
+and in the same network context** as setup. Add or remove dots with name,
+tunnel ID and password-style key fields, then click **Save and prepare local setup** once.
+The form expires after about 10 minutes. See the
+[web setup limits](docs/private-key-config.md#web-form-and-browser-trust).
+
+In the terminal, one final `Save and prepare local setup? [y/N]`
 confirmation explains that it will save a **plaintext private config** and
-create local internal credentials. Nothing is saved until you approve. Setup
-does not connect tunnels or start services; `run` is a separate action.
+create local internal credentials. The web form uses the same single approval.
+Nothing is saved until you approve. Setup does not connect tunnels or start
+runtime services; `run` is a separate action.
 
 For a fresh installation, the default private config is
 `~/.multidot/config.json`, and generated runtime state and credentials live
@@ -51,13 +61,14 @@ unchanged, and the user's home directory is never created. Custom config paths
 must keep a `.private.json` or `.local.json` suffix; bare `config.json` is allowed
 only at the default private home location.
 
-The wizard can fill the reviewed blank template created by `init`, but refuses
-to replace a populated config. Do not edit the config concurrently with the
-wizard; its advisory lock cannot stop unrelated editors. To use an existing
-file, run `setup --non-interactive` for the default path, or
+Both entry modes can fill only the exact reviewed blank template created by
+`init`, and refuse to replace a populated config. Do not edit the config while
+either form is open; its advisory lock cannot stop unrelated editors. To use an
+existing file, run `setup --non-interactive` for the default path, or
 `setup --config /ABS/PATH/dots.private.json` for an explicit path. Use
 `setup --interactive --config /ABS/PATH/dots.private.json` for a wizard at a
-custom path. `--interactive` and `--non-interactive` are mutually exclusive.
+custom path, or `setup --web --config /ABS/PATH/dots.private.json` for its web
+form. `--web`, `--interactive` and `--non-interactive` are mutually exclusive.
 `init` remains an optional blank-template command for advanced file workflows.
 
 The blank [public template](config/dots.example.json) contains only
@@ -65,16 +76,18 @@ The blank [public template](config/dots.example.json) contains only
 enter internal producer/worker tokens. `setup` verifies an **already-installed**
 toolchain, initializes a fresh local installation and creates its internal
 credentials. It does not download software, contact OpenAI, create tunnels or
-start services. `run` starts the configured stack in the foreground and attempts
-the approved tunnel connections. Keep its session open; Ctrl-C stops it.
+start runtime services. `run` starts the configured stack in the foreground
+and attempts the approved tunnel connections. Keep its session open; Ctrl-C
+stops it.
 
 **Preparation is not a live deployment.** No real setup, authenticated tunnel
 connection, account execution, Events delivery or always-on hosting has been
 verified. The intended host remains **dot's own cloud**, not the user's Mac;
-a supported private terminal/input route for the user in that cloud is still
-unverified. A native terminal and an executor may have different home
-directories and process/network namespaces; a blank file in one does not
-establish runtime access in the other. Do not enter real keys until the private
+a supported private input route for the user in that cloud is still unverified.
+A same-machine web form does not establish native cloud-browser access; the
+previous fake-only native POST was blocked and was not retried. A native
+terminal and an executor may have different home directories and process/network
+namespaces; a blank file in one does not establish runtime access in the other. Do not enter real keys until the private
 route and the required setup/run approvals are in place. Never paste keys in
 chat, command arguments or Git.
 

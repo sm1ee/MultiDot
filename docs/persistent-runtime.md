@@ -1,11 +1,12 @@
 # Configurable runtime, preparation only
 
 Use the [quick setup guide](simple-setup.md) for the preferred user flow:
-interactive `multidot.py setup` → separate foreground `run`. The wizard asks
-for each dot's name, tunnel ID and hidden API key, then whether to add another
-dot (default: no). No `init` or manual JSON edit is needed. The list selects the
-names and number of dots. A/B/C and a count of three are legacy examples, not
-architecture requirements.
+terminal `multidot.py setup` → separate foreground `run`. The wizard asks
+for each dot's name, tunnel ID and `*`-masked API key, then whether to add another
+dot (default: no). Use `setup --web` for an explicit same-machine browser form
+with dynamic dot rows and password-style key fields. No `init` or manual JSON
+edit is needed. The list selects the names and number of dots. A/B/C and a
+count of three are legacy examples, not architecture requirements.
 
 **No real setup, authenticated tunnel connection, actual dot-account execution,
 Events acceptance or always-on deployment has been verified.** Tests use
@@ -13,8 +14,9 @@ synthetic identities. The intended host remains dot's own cloud, not the user's
 Mac, and a supported private terminal/input route for the user in that cloud
 is still unverified. A native terminal and an executor may use different home
 directories and process/network namespaces; a blank config in one does not
-prove access to the runtime in the other. Code support does not establish that
-access or a live connection.
+prove access to the runtime in the other. The web form does not establish
+native cloud-browser access. Code support does not establish that access or a
+live connection.
 
 ## Prerequisites and paths
 
@@ -55,9 +57,9 @@ creating the missing `~/.multidot` application directory (0700) if needed. It
 never creates the user's home directory, changes existing directory
 permissions, or accepts an unsafe or symlinked existing application directory.
 The optional `init` command still creates only a blank template, without
-overwriting an existing file. The wizard may fill that reviewed blank template,
-but refuses a populated config unchanged. Custom config filenames must still
-end in `.private.json` or `.local.json`; bare `config.json` is allowed only at
+overwriting an existing file. Both entry modes may fill only that exact reviewed
+blank template, and refuse a populated config unchanged. Custom config
+filenames must still end in `.private.json` or `.local.json`; bare `config.json` is allowed only at
 the default private home location.
 
 For different approved locations, supply paths, never keys:
@@ -68,10 +70,13 @@ python3 scripts/multidot.py setup --interactive --config /ABS/PATH/dots.private.
 python3 scripts/multidot.py run --state-root /ABS/PATH/multidot-state
 ```
 
-Without `--interactive`, an explicit `--config` keeps the existing
+Without `--interactive` or `--web`, an explicit `--config` keeps the existing
 non-interactive file-based flow. Use `setup --non-interactive` to load an
-existing default config without prompts. The `--interactive` and
-`--non-interactive` flags are mutually exclusive and apply to setup.
+existing default config without prompts. Use
+`setup --web --config /ABS/PATH/dots.private.json` for a web form at a custom
+destination. `--web`,
+`--interactive` and `--non-interactive` are mutually exclusive and apply only
+to setup.
 
 `/ABS/PATH/…` values are placeholders. The wrapper expands quoted `~/...` paths
 for `--config`, `--state-root` and `--tools-root`. Relative overrides resolve
@@ -81,7 +86,8 @@ and state root on `setup`/`run`/`status`/`stop`; changing the state root selects
 different installation target, not a migration. Runtime commands read the
 generated config under the selected state root, not the private input JSON.
 Tool verification may execute the installed verifier/interpreter, but setup
-makes no external request and starts no service. Missing/mismatched toolchains
+makes no external request and starts no runtime service. Web mode starts only
+its temporary loopback form listener. Missing/mismatched toolchains
 are refused; the simple setup command does not install them automatically.
 
 ## Existing installations and manual path changes
@@ -135,13 +141,27 @@ For a fresh installation, the user runs:
 python3 scripts/multidot.py setup
 ```
 
-The wizard requires a terminal with hidden key entry and refuses visible-key
-fallback or piped input. It collects and validates all entries before writing
-the config. One final `Save and prepare local setup? [y/N]` confirmation
-explains that it saves a plaintext private config and creates local internal
-credentials at the displayed destinations. Enter defaults to no. After
-approval, it saves the complete config and performs local setup. The wizard
-does not start services or make network connections.
+The terminal wizard requires masked key entry on Python 3.11+ and refuses
+visible-key fallback or piped input. It displays one `*` per entered character,
+revealing key length; this does not fix clipboard transfer between environments.
+It collects and validates all entries before writing the config. One final
+`Save and prepare local setup? [y/N]` confirmation explains that it saves a
+plaintext private config and creates local internal credentials at the
+displayed destinations. Enter defaults to no.
+
+Alternatively, run `python3 scripts/multidot.py setup --web`. It prints a bare
+`http://127.0.0.1:<port>/` URL on a temporary local port without launching a
+browser. Open it yourself in a trusted browser on the same machine and in the
+same network context, add or remove dot rows, then click **Save and prepare local setup**.
+The form expires after about 10 minutes. It is not a remote-access service;
+do not expose, forward or proxy it or bypass browser/security blocks. See
+[web form and browser trust](private-key-config.md#web-form-and-browser-trust)
+for HttpOnly/CSRF, exact Host/Origin checks and their same-user trust limits.
+
+Both entry modes save the complete config and perform local preparation only
+after that one approval. Neither starts runtime services, connects tunnels or
+makes external network requests. The web listener only collects the approved
+local setup input; it does not grant access to the cloud runtime.
 
 Each entry supplies `name`, `tunnel_id`, and `runtime_api_key`; the wizard uses
 the default `worker` role. Advanced file-based setup permits an optional
@@ -151,8 +171,8 @@ role selectors. There is no fixed 3/4/16-dot count limit; configuration byte
 budgets, OS ports, process capacity and memory bound what can run. Each entry
 needs a distinct existing tunnel ID.
 
-Do not edit the config concurrently with the wizard. Its advisory lock only
-coordinates cooperating wizard processes, not unrelated editors. Declining
+Do not edit the config while either form is open. Its advisory lock only
+coordinates cooperating setup processes, not unrelated editors. Declining
 or canceling before config publication leaves the destination unchanged and
 retains no secret temporary file during normal cleanup. If local preparation
 fails after config publication, the complete config stays saved and a fixed
@@ -176,14 +196,14 @@ requires an explicitly approved credential-renewal workflow.
 
 Setup publishes fresh state atomically from a private stage. It does not make
 OpenAI API calls, create tunnels, configure ChatGPT accounts, subscribe to
-Events or start services. A successful setup does not verify the external key's
-permissions. Crashes can leave a private stage; see
+Events or start runtime services. A successful setup does not verify the
+external key's permissions. Crashes can leave a private stage; see
 [private config handling](private-key-config.md) before retrying.
 
 On a stopped existing installation, use file-based setup with
-`--non-interactive` or an explicit `--config`; the wizard refuses populated
-configs. Entries are matched by tunnel ID against the private manifest.
-Display-name edits and list reordering preserve UUIDs, queues, tenant, ports,
+`--non-interactive` or an explicit `--config`; both entry forms refuse
+populated configs. Entries are matched by tunnel ID against the private
+manifest. Display-name edits and list reordering preserve UUIDs, queues, tenant, ports,
 keys and queued work. Adding/removing dots, replacing a
 tunnel, changing a role or replacing a key is refused pending an explicit
 migration/rotation workflow. Missing state is not silently reprovisioned.
@@ -367,11 +387,15 @@ live generic multi-dot account connectivity.
 A secret-free executor request reached `api.openai.com/v1/tunnels` and returned
 401; it established routing, not authentication. The cloud desktop returned
 network-unreachable for the same destination. No network restriction was
-changed. A fake-only secure-entry submit attempt was blocked; no real secret
-was submitted. A supported private-entry path into the intended runtime
-remains an outstanding gate. A terminal wizard and a blank native-terminal
-config do not themselves establish shared home paths, namespaces, installed
-tools, or permission for a real setup and connection.
+changed. The earlier fake-only native cloud-browser POST was blocked with
+`ERR_BLOCKED_BY_CLIENT` and was not retried; no real secret was submitted. The
+new web form is validated only through source and synthetic HTTP fixtures,
+not native cloud-browser acceptance. The browser rendering/copy-paste fixture
+was not executed because headless launch was blocked; terminal PTY checks are
+separate evidence. A supported private-entry path into the intended runtime
+remains an outstanding gate. A terminal wizard, local web form or blank
+native-terminal config does not itself establish shared home paths,
+namespaces, installed tools, or permission for a real setup and connection.
 
 ## Repeatable validation
 

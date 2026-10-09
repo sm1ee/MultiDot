@@ -132,10 +132,11 @@ class WizardTerminalTests(unittest.TestCase):
         self.send("Fixture reviewer " + str(number) + "\n")
         self.until("Tunnel ID: ")
         self.send(f"tunnel_{number:032x}\n")
-        self.until("Runtime API key (hidden): ")
+        self.until("Runtime API key (masked): ")
         self.assertFalse(termios.tcgetattr(self.master)[3] & termios.ECHO)
         self.send(MARKER + "\n")
         self.until("Add another dot? [y/N]: ")
+        self.assertIn("*" * len(MARKER), self.output)
         self.assertTrue(termios.tcgetattr(self.master)[3] & termios.ECHO)
 
     def assert_no_config_or_preparation(self):
@@ -144,7 +145,7 @@ class WizardTerminalTests(unittest.TestCase):
         if self.config.parent.exists():
             self.assertFalse(list(self.config.parent.glob("*.pending")))
 
-    def test_actual_tty_hides_keys_and_saves_two_profiles_after_one_confirmation(self):
+    def test_actual_tty_masks_keys_and_saves_two_profiles_after_one_confirmation(self):
         self.start()
         self.enter_dot(1)
         self.send("y\n")
@@ -171,26 +172,26 @@ class WizardTerminalTests(unittest.TestCase):
         self.finish()
         self.assert_no_config_or_preparation()
 
-    def test_ctrl_c_during_hidden_input_restores_echo_and_leaves_no_config(self):
+    def test_ctrl_c_during_masked_input_restores_echo_and_leaves_no_config(self):
         self.start()
         self.until("Dot name: ")
         self.send("Fixture\n")
         self.until("Tunnel ID: ")
         self.send("tunnel_" + "1" * 32 + "\n")
-        self.until("Runtime API key (hidden): ")
+        self.until("Runtime API key (masked): ")
         self.assertFalse(termios.tcgetattr(self.master)[3] & termios.ECHO)
         self.send(MARKER)
         self.send("\x03")
         self.finish()
         self.assert_no_config_or_preparation()
 
-    def test_eof_during_hidden_input_restores_echo_and_leaves_no_config(self):
+    def test_eof_during_masked_input_restores_echo_and_leaves_no_config(self):
         self.start()
         self.until("Dot name: ")
         self.send("Fixture\n")
         self.until("Tunnel ID: ")
         self.send("tunnel_" + "1" * 32 + "\n")
-        self.until("Runtime API key (hidden): ")
+        self.until("Runtime API key (masked): ")
         self.send("\x04")
         self.finish()
         self.assert_no_config_or_preparation()

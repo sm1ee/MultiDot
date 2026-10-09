@@ -24,10 +24,11 @@ def main(argv=None):
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--interactive", action="store_true", help="Use the setup wizard, including with --config")
     mode.add_argument("--non-interactive", action="store_true", help="Prepare setup from an existing private config without prompts")
+    mode.add_argument("--web", action="store_true", help="Collect setup in a short-lived loopback-only web form")
     args = parser.parse_args(argv)
     wizard_saved = False
     try:
-        if args.command != "setup" and (args.interactive or args.non_interactive):
+        if args.command != "setup" and (args.interactive or args.non_interactive or args.web):
             raise SetupError("setup_mode_requires_setup_command")
         config_path = args.config if args.config is not None else default_config()
         if args.command == "init":
@@ -35,7 +36,7 @@ def main(argv=None):
         else:
             environment = default_environment(args.state_root, args.tools_root)
             if args.command == "setup":
-                interactive = args.interactive or (args.config is None and not args.non_interactive)
+                interactive = not args.web and (args.interactive or (args.config is None and not args.non_interactive))
                 if interactive:
                     from multidot_wizard import collect_and_save, require_tty
                     require_tty()
@@ -43,7 +44,9 @@ def main(argv=None):
                 desired_prefix = Path(environment["upstream_python"]).parent.parent.resolve()
                 if Path(sys.prefix).resolve() != desired_prefix:
                     os.execv(environment["upstream_python"], [environment["upstream_python"], str(Path(__file__).resolve()), *(sys.argv[1:] if argv is None else argv)])
-                if interactive:
+                if args.web:
+                    from multidot_web import collect_and_save
+                if interactive or args.web:
                     wizard = collect_and_save(config_path, state_root=environment["state_root"])
                     wizard_saved = bool(wizard["saved"])
                     if not wizard["requested_setup"]:

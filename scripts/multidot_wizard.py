@@ -6,18 +6,17 @@ Tests and agents must use disposable homes and synthetic values only.
 """
 from __future__ import annotations
 
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 import fcntl
-import getpass
 import json
 import os
 import signal
 import sys
 import uuid
-import warnings
 
 import multidot_setup as setup
 from runtime_credentials import owner_only
+from multidot_terminal import read_secret
 
 MAX_CONFIG_BYTES = 262144
 
@@ -40,14 +39,7 @@ def _answer(prompt):
 
 
 def _secret():
-    # getpass warns *before* its echoing fallback. Turning the warning into an
-    # exception prevents that fallback from reading even one password byte.
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("error", getpass.GetPassWarning)
-            return getpass.getpass("Runtime API key (hidden): ")
-    except getpass.GetPassWarning:
-        raise setup.SetupError("secure_password_entry_unavailable") from None
+    return read_secret()
 
 
 def _identity(info):
@@ -174,6 +166,30 @@ def _save(parent, name, original, data, result):
             raise setup.SetupError("config_saved_sync_unconfirmed") from None
 
 
+@contextmanager
+def private_destination(path):
+    """Hold the same owner-only lock and blank snapshot for either collector.
+
+    The yielded publisher retains the reviewed atomic persistence implementation.
+    Keep this context open through the user's approval and publication.
+    """
+    parent = lock = None
+    try:
+        parent, name = setup.config_parent(path, create=True)
+        lock = _lock(parent, name)
+        original = _blank_snapshot(parent, name)
+
+        def publish(data, result):
+            _save(parent, name, original, data, result)
+
+        yield publish
+    finally:
+        if lock is not None:
+            os.close(lock)
+        if parent is not None:
+            os.close(parent)
+
+
 def collect_and_save(path, state_root=None):
     """Collect and validate all entries, confirm once, then publish privately.
 
@@ -185,14 +201,12 @@ def collect_and_save(path, state_root=None):
     result = {"ok": True, "saved": False, "requested_setup": False,
               "configured_dots": 0, "cancelled": False,
               "values_displayed": False}
-    parent = lock = None
+    destination = ExitStack()
     try:
         path = setup.expand_path(path)
         state_root = (setup.expand_path(state_root) if state_root is not None else
                       setup.application_home() / "state")
-        parent, name = setup.config_parent(path, create=True)
-        lock = _lock(parent, name)
-        original = _blank_snapshot(parent, name)
+        publish = destination.enter_context(private_destination(path))
         dots = []
         while True:
             print("Dot " + str(len(dots) + 1))
@@ -226,7 +240,7 @@ def collect_and_save(path, state_root=None):
         if not _answer("Save and prepare local setup? [y/N]: "):
             result["cancelled"] = True
             return result
-        _save(parent, name, original, data, result)
+        publish(data, result)
         result["configured_dots"] = len(dots)
         result["requested_setup"] = True
         return result
@@ -242,7 +256,4 @@ def collect_and_save(path, state_root=None):
         exc.config_saved = result["saved"]
         raise exc from None
     finally:
-        if lock is not None:
-            os.close(lock)
-        if parent is not None:
-            os.close(parent)
+        destination.close()

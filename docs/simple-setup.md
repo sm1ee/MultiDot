@@ -1,6 +1,6 @@
 # MultiDot Quick Setup
 
-Run `setup` to enter each dot's **name, tunnel ID, and hidden runtime API key**.
+Run `setup` to enter each dot's **name, tunnel ID, and `*`-masked runtime API key**.
 The wizard saves the private config and prepares internal tokens and ports
 after one final confirmation. No manual JSON editing or `init` step is needed.
 
@@ -12,8 +12,9 @@ entered through the wizard defaults to `worker`.
 > This is currently at the code and local-validation stage. Neither setup nor
 > tunnel connections have been run with real keys. The target environment is
 > **dot's cloud**, rather than your Mac. A supported private terminal/input
-> route into that runtime is still unverified. Do not enter real keys until
-> that route and the required setup/run approvals are in place. A native
+> route into that runtime is still unverified, including native cloud-browser
+> access to the new web form. Do not enter real keys until that route and the
+> required setup/run approvals are in place. A native
 > terminal and an executor may have different home directories and namespaces;
 > a blank config in one does not establish access to the runtime in the other.
 
@@ -26,7 +27,7 @@ Changing defaults does not move old files or renew credentials.
 
 Run this command yourself from the repository in the intended Linux runtime
 environment. Python 3.11+ and the reviewed, pinned toolchain must already be
-installed. Use a trusted private terminal that supports hidden key entry.
+installed. Use a trusted private terminal that supports masked key entry.
 
 ```sh
 python3 scripts/multidot.py setup
@@ -36,12 +37,39 @@ The wizard asks for:
 
 1. A name for the dot
 2. Its existing tunnel ID
-3. Its runtime API key, with input hidden
+3. Its runtime API key, with one `*` shown per entered character
 4. Whether to add another dot, defaulting to no
 
 Repeat for each dot you want. There is no initial dot-count question. The wizard
-refuses to accept keys if hidden terminal entry is unavailable; it does not
-fall back to echoing keys or accepting piped input.
+refuses to accept keys if masked terminal entry is unavailable; it does not
+fall back to echoing keys or accepting piped input. This works on Python 3.11+
+and reveals the key's length. It does not resolve clipboard transfer between
+separate terminals or browsers.
+
+### Optional: Use a Same-Machine Web Form
+
+```sh
+python3 scripts/multidot.py setup --web
+```
+
+Open the printed `http://127.0.0.1:<port>/` URL yourself in a trusted browser on
+the same machine and in the same network context as the command. Setup chooses
+a temporary local port and does not launch a browser. The URL has no key or
+session token. Keep the command running; the form expires after about 10 minutes.
+
+Add or remove dot rows as needed. Each row has a name, tunnel ID and
+password-style key field. Review the destinations and plaintext-storage notice,
+then click **Save and prepare local setup** to save and prepare once. Opening
+the page does not save anything. Return to the terminal for the local
+preparation result; the page confirms only config saving. Starting the runtime
+remains a separate step.
+
+The web form is not a remote setup endpoint. Separate cloud browsers and
+executors may not share loopback access. Do not expose, forward or proxy the
+listener, or bypass a browser/security block. See
+[web form and browser trust](private-key-config.md#web-form-and-browser-trust).
+
+### Choose the Existing Tunnel and Key
 
 Use an existing ID from
 [OpenAI Tunnels settings](https://platform.openai.com/settings/organization/tunnels).
@@ -66,23 +94,27 @@ credentials. It asks once:
 Save and prepare local setup? [y/N]
 ```
 
-Pressing Enter declines. No config is written before approval. After approval,
-the complete config is saved as `~/.multidot/config.json`, with owner-only 0600
-permissions. A missing `~/.multidot` application directory is created with 0700
-permissions. Unsafe or symlinked application directories are refused; existing
-directory permissions are not changed, and the user's home directory is never
+Pressing Enter declines in the terminal. In the web form, the
+**Save and prepare local setup** button is this confirmation. No config is
+written before approval. After approval, the complete config is saved as
+`~/.multidot/config.json`, with owner-only 0600 permissions. A missing
+`~/.multidot` application directory is created with 0700 permissions. Unsafe or
+symlinked application directories are refused; existing directory permissions
+are not changed, and the user's home directory is never
 created. Runtime state and credentials go under `~/.multidot/state/`. Both
 defaults use the current OS user's home directory, independent of the checkout
 or calling directory.
 
 Setup prepares local queues, internal tokens, ports, and state using the
 already-installed toolchain. It does not download tools, contact OpenAI, create
-tunnels, or start services. Success does not confirm account connectivity.
+tunnels, or start runtime services. Success does not confirm account
+connectivity.
 
-The wizard can fill the reviewed blank template produced by `init`. It refuses
-a populated existing config and leaves it unchanged; use the file-based flow
-below to reuse one. Do not edit the config while the wizard is open. Its
-advisory lock does not prevent unrelated editors from writing the file.
+Both entry modes can fill only the exact reviewed blank template produced by
+`init`. They refuse a populated existing config and leave it unchanged; use
+the file-based flow below to reuse one. Do not edit the config while either
+form is open. Its advisory lock does not prevent unrelated editors from
+writing the file.
 
 Declining or canceling before config publication leaves the config unchanged
 and retains no secret temporary file during normal cleanup. Abrupt process
@@ -120,15 +152,17 @@ flow. Run these real setup and runtime commands yourself.
 
 The command selects its mode as follows:
 
-- `setup`: wizard at `~/.multidot/config.json`
+- `setup`: terminal wizard at `~/.multidot/config.json`
+- `setup --web`: same-machine web form at the default config path
 - `setup --non-interactive`: use an existing default config without prompts
 - `setup --config /ABS/PATH/dots.private.json`: preserve the existing file-based,
   non-interactive flow at that path
 - `setup --interactive --config /ABS/PATH/dots.private.json`: wizard at a custom
   private path
+- `setup --web --config /ABS/PATH/dots.private.json`: web form at a custom path
 
-`--interactive` and `--non-interactive` are mutually exclusive. Non-interactive
-setup still requires prior approval for local credential creation; it is not
+`--web`, `--interactive` and `--non-interactive` are mutually exclusive.
+Non-interactive setup still requires prior approval for local credential creation; it is not
 a way to bypass that requirement. `init` remains available to create a blank
 template only, without overwriting an existing file, for advanced file-based
 workflows. New users do not need it.

@@ -11,7 +11,6 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
-import warnings
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -56,7 +55,7 @@ class WizardTests(unittest.TestCase):
             stack.enter_context(patch("builtins.input", side_effect=(
                 input_effect if input_effect is not None else
                 (answers if answers is not None else self.conversation()))))
-            stack.enter_context(patch.object(wizard.getpass, "getpass", side_effect=(
+            stack.enter_context(patch.object(wizard, "read_secret", side_effect=(
                 secret_effect if secret_effect is not None else
                 (keys if keys is not None else [MARKER]))))
             provision = stack.enter_context(patch.object(setup, "provision_stage"))
@@ -94,7 +93,7 @@ class WizardTests(unittest.TestCase):
                     stack.enter_context(patch.object(sys, name,
                         StringIO() if name == redirected else Terminal()))
                 ask = stack.enter_context(patch("builtins.input"))
-                secret = stack.enter_context(patch.object(wizard.getpass, "getpass"))
+                secret = stack.enter_context(patch.object(wizard, "read_secret"))
                 with self.assertRaises(setup.SetupError) as caught:
                     wizard.collect_and_save(self.config)
                 self.assertEqual(caught.exception.code, "interactive_terminal_required")
@@ -102,16 +101,10 @@ class WizardTests(unittest.TestCase):
                 secret.assert_not_called()
                 self.assertFalse(self.config.parent.exists())
 
-    def test_getpass_warning_prevents_fallback_input(self):
-        reached_fallback = []
-        def insecure(_prompt):
-            warnings.warn("Synthetic warning", wizard.getpass.GetPassWarning)
-            reached_fallback.append(True)
-            return MARKER
+    def test_masked_input_failure_has_no_visible_fallback(self):
         with self.assertRaises(setup.SetupError) as caught:
-            self.run_wizard(secret_effect=insecure)
+            self.run_wizard(secret_effect=setup.SetupError("secure_password_entry_unavailable"))
         self.assertEqual(caught.exception.code, "secure_password_entry_unavailable")
-        self.assertEqual(reached_fallback, [])
         self.assertFalse(self.config.exists())
         self.assert_no_secret_temporary()
 
@@ -136,7 +129,7 @@ class WizardTests(unittest.TestCase):
                     self.assertFalse(self.config.exists())
                     self.assert_no_secret_temporary()
 
-    def test_eof_and_interrupt_during_hidden_entry_leave_no_config(self):
+    def test_eof_and_interrupt_during_masked_entry_leave_no_config(self):
         for failure in (EOFError, KeyboardInterrupt):
             with self.subTest(failure=failure):
                 result = self.run_wizard(secret_effect=failure())
