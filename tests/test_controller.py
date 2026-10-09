@@ -305,7 +305,7 @@ class ControllerTests(unittest.TestCase):
 
     def test_t23_upstream_escaped_unicode_limit(self):
         with self.assertRaises(ValidationError):
-            wire_bounded({"payload": "한" * 25000})
+            wire_bounded({"payload": "\ud55c" * 25000})
 
     def test_t23_oversized_output_rejected(self):
         job, task = self.dispatch()

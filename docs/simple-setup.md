@@ -1,95 +1,103 @@
-# MultiDot 간단 설정
+# MultiDot Quick Setup
 
-사용자가 입력할 것은 dot마다 **이름, tunnel ID, runtime API key**입니다.
-내부 producer/worker 토큰과 포트는 `setup`이 준비합니다.
+For each dot, you provide a **name, tunnel ID, and runtime API key**.
+The `setup` command prepares the internal producer/worker tokens and ports.
 
-A/B/C라는 이름이나 3개 구성은 예시일 뿐입니다. 한글 등 원하는 표시 이름을
-쓰고, `dots` 목록에 필요한 수만큼 항목을 넣으세요. 고정된 3/4/16개 제한은
-없지만 설정 파일 크기, 사용 가능한 포트와 메모리 등의 한계는 있습니다.
+A/B/C and a three-dot configuration are only examples. Use any display names
+you like, including names in other languages, and add as many entries to the
+`dots` list as you need. There is no fixed limit of 3, 4, or 16 dots, but limits
+such as configuration file size, available ports, and memory still apply.
 
-> 현재는 코드와 로컬 검증 단계입니다. 실제 키로 setup이나 tunnel 연결을
-> 실행하지 않았습니다. 대상은 사용자의 Mac이 아니라 **dot의 클라우드**이며,
-> 사용자가 그곳의 파일을 안전하게 직접 편집하는 경로는 아직 확인되지
-> 않았습니다. 그 경로가 마련되기 전에는 실제 키를 입력하지 마세요.
+> This is currently at the code and local-validation stage. Neither setup nor
+> tunnel connections have been run with real keys. The target environment is
+> **dot's cloud**, rather than your Mac. A secure way for you to edit files
+> directly in that environment has not yet been confirmed. Do not enter real
+> keys until that is available.
 
-## 1. 빈 설정 만들기
+## 1. Create an Empty Configuration
 
-실행할 Linux 환경의 저장소에서 사용자가 직접 실행합니다.
-Python 3.11+와 검증된 고정 버전 도구 설치가 먼저 필요합니다.
+Run this command yourself from the repository in the Linux environment where
+MultiDot will run. Python 3.11+ and the verified, pinned tool versions must be
+installed first.
 
 ```sh
 python3 scripts/multidot.py init
 ```
 
-`config/dots.private.json`을 소유자만 읽고 쓸 수 있게 생성합니다.
-이미 있는 파일은 덮어쓰지 않습니다.
+This creates `config/dots.private.json` with read and write access restricted
+to its owner. It does not overwrite an existing file.
 
-## 2. 파일을 직접 편집하기
+## 2. Edit the File Yourself
 
-신뢰하는 개인용 편집기로 `config/dots.private.json`을 엽니다.
-빈 문자열을 채우고, dot을 더 쓸 경우 같은 형식의 항목을 목록에 추가하세요.
+Open `config/dots.private.json` in a trusted private editor. Fill in the empty
+strings. To use more dots, add entries to the list in the same format.
 
 ```json
 {
   "schema_version": 1,
   "dots": [
-    {"name": "조사 담당", "tunnel_id": "", "runtime_api_key": ""}
+    {"name": "Researcher", "tunnel_id": "", "runtime_api_key": ""}
   ]
 }
 ```
 
-- `name`: 원하는 표시 이름. 이름이 역할이나 권한을 정하지 않습니다.
-- `tunnel_id`: [OpenAI Tunnels 설정](https://platform.openai.com/settings/organization/tunnels)에서 확인한 기존 ID. 항목마다 서로 달라야 합니다.
-- `runtime_api_key`: [OpenAI API keys 설정](https://platform.openai.com/settings/organization/api-keys)에서 준비한, 해당 tunnel에 **Read + Use** 권한이 있는 키. `Bearer `는 붙이지 않습니다. admin key는 쓰지 마세요.
+- `name`: Your preferred display name. The name does not determine the dot's role or permissions.
+- `tunnel_id`: An existing ID from [OpenAI Tunnels settings](https://platform.openai.com/settings/organization/tunnels). Each entry must use a different ID.
+- `runtime_api_key`: A key prepared in [OpenAI API keys settings](https://platform.openai.com/settings/organization/api-keys) with **Read + Use** permissions for that tunnel. Do not add the `Bearer ` prefix or use an admin key.
 
-하나의 키를 여러 항목에 써도 되지만, **그 키와 principal이 각 tunnel 및
-관련 workspace/org에 접근할 권한을 모두 가져야 합니다**. 같은 계정이라는
-이유만으로 모든 tunnel에 사용할 수 있는 것은 아닙니다.
-[공식 권한 안내](https://github.com/openai/tunnel-client/blob/v0.0.16/docs/permissions.md)
+You may use one key for multiple entries, but **both the key and its principal
+must have access to each tunnel and the associated workspace/organization**.
+Belonging to the same account does not automatically grant access to every
+tunnel. See the [official permissions guide](https://github.com/openai/tunnel-client/blob/v0.0.16/docs/permissions.md).
 
-역할을 생략하면 모두 `worker`입니다. 결과 종합용 dot이 필요한 고급 구성만
-해당 항목에 `"role": "synthesis"`를 추가하세요. 종합용은 최대 하나이고,
-일반 `worker`가 최소 하나 필요합니다.
+If you omit the role, every dot defaults to `worker`. Add `"role": "synthesis"`
+to an entry only for an advanced configuration that needs a dot to combine
+results. At most one synthesis dot is allowed, and at least one regular
+`worker` is required.
 
-키가 들어간 파일을 채팅, Git, 스크린샷이나 공유 문서에 올리지 마세요.
-agent에게 파일을 열거나 내용을 검사하도록 요청하지 말고 다음 명령도
-사용자가 직접 실행하세요. 파일은 암호화되지 않은 평문입니다.
+Do not share a file containing keys through chat, Git, screenshots, or shared
+documents. Do not ask an agent to open or inspect the file. Run the following
+commands yourself as well. The file is unencrypted plain text.
 
-## 3. 한 번 준비하기
+## 3. Run Setup Once
 
-로컬 내부 자격 증명 생성까지 승인한 뒤 직접 실행합니다.
+After approving the creation of local internal credentials, run this command
+yourself:
 
 ```sh
 python3 scripts/multidot.py setup
 ```
 
-설치된 고정 버전 도구를 검증한 뒤 내부 큐, 토큰, 포트, 상태 파일을
-준비합니다. 도구를 다운로드하거나 OpenAI에 접속하지 않고, 새 tunnel을
-만들거나 서비스를 시작하지 않습니다. 성공 메시지도 실제 계정 연결이나
-키의 원격 권한이 확인됐다는 뜻은 아닙니다.
+The command verifies the installed, pinned tool versions, then prepares
+internal queues, tokens, ports, and state files. It does not download tools,
+connect to OpenAI, create new tunnels, or start services. A success message
+does not confirm a real account connection or the key's remote permissions.
 
-`reviewed_runtime_installation_missing`이 나오면 검증된 도구 설치가 먼저
-필요합니다. 키를 다시 입력할 문제가 아닙니다.
-[설치 전제와 실행 환경](persistent-runtime.md#prerequisites-and-paths)을 확인하세요.
+If you see `reviewed_runtime_installation_missing`, the verified tools must
+be installed first. Re-entering the key will not fix this. See
+[prerequisites and runtime paths](persistent-runtime.md#prerequisites-and-paths).
 
-## 4. 실행하기
+## 4. Start the Runtime
 
-해당 tunnel 연결과 실행이 승인된 환경에서 직접 실행합니다.
+Run this command yourself in an environment approved for connecting to the
+specified tunnels and running the runtime:
 
 ```sh
 python3 scripts/multidot.py run
 ```
 
-전체 구성을 **포그라운드**로 실행합니다. 실행 세션을 열어 두고, 중지는
-그 세션에서 Ctrl-C를 누릅니다. 자동 부팅 서비스는 설치하지 않습니다.
-세션이나 클라우드 호스트가 종료되면 계속 실행된다는 보장은 없습니다.
+This runs the full configuration in the **foreground**. Keep the session open
+and press Ctrl-C in that session to stop it. No service is installed to start
+automatically at boot. Continued operation is not guaranteed if the session
+or cloud host shuts down.
 
-## 나중에 바꿀 때
+## Making Changes Later
 
-- 처음 준비할 때 이름·개수·역할을 정하세요. 표시 이름 변경과 목록 순서 변경은 런타임을 멈춘 뒤 파일을 편집하고 `setup`을 다시 실행하면 됩니다. 내부 UUID, 큐, tenant와 키는 유지됩니다.
-- 기존 설치에서 dot 추가/삭제, tunnel 변경, 역할 변경, 키 교체는 현재 `setup`이 거부합니다. 별도 이전·교체 절차가 필요하며, 이를 우회하려고 기존 상태를 삭제하지 마세요.
-- 내부 토큰 유효기간은 30일입니다. 자동 갱신은 없으므로 만료 후 계속 운영하려면 명시적인 갱신 절차가 필요합니다.
-- 각 dot의 실제 작업 실행, Events 연결과 사용자에게 결과 전달은 별도 검증이 필요합니다.
+- Choose the names, number of dots, and roles during initial setup. To change display names or reorder the list, stop the runtime, edit the file, and rerun `setup`. Internal UUIDs, queues, tenants, and keys are preserved.
+- For an existing installation, `setup` currently rejects adding or removing dots, changing tunnels or roles, and replacing keys. These changes require a separate migration or replacement procedure. Do not delete existing state to bypass this restriction.
+- Internal tokens expire after 30 days. They are not renewed automatically, so continued operation after expiration requires an explicit renewal procedure.
+- Real task execution by each dot, Events connections, and delivery of results to the user require separate validation.
 
-자세한 보관·재설정 주의사항은 [키 설정 안내](private-key-config.md),
-운영과 복구 한계는 [런타임 안내](persistent-runtime.md)에 있습니다.
+See the [key configuration guide](private-key-config.md) for storage and reset
+precautions, and the [runtime guide](persistent-runtime.md) for operational and
+recovery limits.

@@ -18,10 +18,10 @@ from multidot.models import AccessError, ConflictError, ValidationError, digest,
 def registry(count=2, synthesis=False):
     # Stable IDs deliberately have no relationship to the Unicode display names.
     ids = ("w-8e92", "w-177f", "w-b6ad", "w-429c")
-    names = ("검토 담당 🦊", "Résumé / Reviewer #2", "تحليل", "🧪 Alex")
+    names = ("\uac80\ud1a0 \ub2f4\ub2f9 \U0001f98a", "R\u00e9sum\u00e9 / Reviewer #2", "\u062a\u062d\u0644\u064a\u0644", "\U0001f9ea Alex")
     workers = [{"id": ids[i], "name": names[i], "role": "worker"} for i in range(count)]
     if synthesis:
-        workers.append({"id": "s-47ac", "name": "정리 · Synthèse ✨", "role": "synthesis"})
+        workers.append({"id": "s-47ac", "name": "\uc815\ub9ac \u00b7 Synth\u00e8se \u2728", "role": "synthesis"})
     return workers
 
 
@@ -215,7 +215,7 @@ class GenericWorkerTests(unittest.TestCase):
         controller.pause_worker(workers[0]["id"])
         controller.close()
         renamed = deepcopy(workers)
-        renamed[0]["name"] = "새 이름 🌈 / Renamed"
+        renamed[0]["name"] = "\uc0c8 \uc774\ub984 \U0001f308 / Renamed"
         controller = self.controller(renamed, path, adapter)
         self.assertEqual(dict(controller.db.execute("SELECT * FROM attempts WHERE id=?", (attempt_id,)).fetchone()), original)
         listed = controller.list_workers()[0]

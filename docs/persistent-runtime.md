@@ -1,6 +1,6 @@
 # Configurable runtime, preparation only
 
-Use [간단 설정 안내](simple-setup.md) for the preferred user flow:
+Use the [quick setup guide](simple-setup.md) for the preferred user flow:
 `multidot.py init` → private dots-list edit → `setup` → foreground `run`.
 The list selects the names and number of dots. A/B/C and a count of three are
 legacy examples, not architecture requirements.

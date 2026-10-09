@@ -46,7 +46,7 @@ from run_local_contract import verify
 from run_runtime_checks import FakePlane, wait_for
 import runtime_supervisor as runtime
 
-NAMES = ("오로라 🦊", "Résumé / Review", "محلل البيانات", "研究 🔬", "Shared display name")
+NAMES = ("\uc624\ub85c\ub77c \U0001f98a", "R\u00e9sum\u00e9 / Review", "\u0645\u062d\u0644\u0644 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a", "\u7814\u7a76 \U0001f52c", "Shared display name")
 EXPECTED_TOOLS = {"get_task", "list_tasks", "claim_task", "heartbeat_task", "complete_task", "release_task"}
 FAKE_KEY = "LOCAL_RUNTIME_TEST_ONLY"
 
@@ -244,7 +244,7 @@ class Case:
             secret_paths += [self.state / "secrets" / worker["id"] / key for worker in registry
                              for key in ("worker-authorization", "runtime-api-key")]
             fingerprints = {path: hashlib.sha256(path.read_bytes()).hexdigest() for path in secret_paths}
-            renamed = [{**dot, "name": "다시 이름 · " + str(index), "runtime_api_key": ""} for index, dot in enumerate(dots)]
+            renamed = [{**dot, "name": "\ub2e4\uc2dc \uc774\ub984 \u00b7 " + str(index), "runtime_api_key": ""} for index, dot in enumerate(dots)]
             with patch("dot2api.security.Security.issue_token", side_effect=AssertionError("Rename must not issue access")):
                 rerun = configure(renamed, environment, test_only=True, control_plane_url=plane_url)
             after_manifest = read_manifest(self.state)

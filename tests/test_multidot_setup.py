@@ -39,7 +39,7 @@ class GenericSetupTests(unittest.TestCase):
         self.temp.cleanup()
 
     def rows(self, count):
-        return [{"name": f"연구 담당 {i}", "tunnel_id": f"tunnel_{i + 1:032x}",
+        return [{"name": f"\uc5f0\uad6c \ub2f4\ub2f9 {i}", "tunnel_id": f"tunnel_{i + 1:032x}",
                  "runtime_api_key": MARKER, "role": "worker"} for i in range(count)]
 
     def save(self, rows):
@@ -98,7 +98,7 @@ class GenericSetupTests(unittest.TestCase):
         self.configure(rows)
         before = self.manifest()
         hashes = {str(path.relative_to(self.state)): path.read_bytes() for path in (self.state / "secrets").rglob("*") if path.is_file()}
-        reordered = [dict(row, name="完全に別の表示名 " + str(i)) for i, row in enumerate(reversed(rows))]
+        reordered = [dict(row, name="\u5b8c\u5168\u306b\u5225\u306e\u8868\u793a\u540d " + str(i)) for i, row in enumerate(reversed(rows))]
         self.configure(reordered)
         after = self.manifest()
         self.assertEqual(before["tenant"], after["tenant"])

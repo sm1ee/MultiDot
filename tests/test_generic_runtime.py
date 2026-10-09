@@ -28,7 +28,7 @@ MARKER = "LOCAL_GENERIC_TEST_ONLY"
 
 
 def config_for(root, count=5):
-    names = ["研究员 α", "Captain 🐋", "dot-a", "A / B / C", "Résumé finisher"]
+    names = ["\u7814\u7a76\u5458 \u03b1", "Captain \U0001f40b", "dot-a", "A / B / C", "R\u00e9sum\u00e9 finisher"]
     return {"schema_version": 2, "state_root": str(root), "repository": str(ROOT),
             "upstream_python": sys.executable, "upstream_checkout": str(root / "fake-upstream"),
             "tunnel_binary": str(root / "fake-tunnel"), "upstream_port": 22000,
@@ -72,7 +72,7 @@ class GenericConfigTests(RuntimeFixture):
 
     def test_duplicate_display_names_and_no_synthesis_are_supported(self):
         for entry in self.config["workers"]:
-            entry.update(name="Same arbitrary 名字", role="worker")
+            entry.update(name="Same arbitrary \u540d\u5b57", role="worker")
         self.assertEqual(self.load(), self.config)
 
     def test_rejects_duplicate_ids_tunnels_and_all_port_collisions(self):
@@ -94,7 +94,7 @@ class GenericConfigTests(RuntimeFixture):
             c["workers"][0]["role"] = value
             with self.assertRaises(ValueError):
                 self.load(c)
-        for value in ("../escape", "研究员", "x/y", "ingress:other", "", "a" * 65, "-x"):
+        for value in ("../escape", "\u7814\u7a76\u5458", "x/y", "ingress:other", "", "a" * 65, "-x"):
             c = copy.deepcopy(self.config)
             c["workers"][0]["id"] = value
             with self.assertRaises(ValueError):

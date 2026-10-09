@@ -16,7 +16,7 @@ class NativeContractTests(unittest.TestCase):
 
     def body(self, key="contract-1", **updates):
         body = {"queue": "dot-b", "instructions": "Review only the supplied synthetic material.",
-                "payload": {"text": "LOCAL_CONTRACT 자료"}, "idempotency_key": key,
+                "payload": {"text": "LOCAL_CONTRACT \uc790\ub8cc"}, "idempotency_key": key,
                 "max_attempts": 1, "ttl_seconds": 3600}
         body.update(updates)
         return body
@@ -109,11 +109,11 @@ class NativeContractTests(unittest.TestCase):
     def test_complete_same_principal_lease_result_is_idempotent(self):
         task = self.adapter.submit(self.body())
         claim = self.claim(task)
-        status, result = self.complete(task, claim["lease_token"], {"synthetic": "완료"})
+        status, result = self.complete(task, claim["lease_token"], {"synthetic": "\uc644\ub8cc"})
         self.assertEqual((status, result["task"]["status"]), (200, "completed"))
-        self.assertEqual(self.complete(task, claim["lease_token"], {"synthetic": "완료"}), (status, result))
+        self.assertEqual(self.complete(task, claim["lease_token"], {"synthetic": "\uc644\ub8cc"}), (status, result))
         self.assertEqual(self.complete(task, claim["lease_token"], {"synthetic": "changed"})[0], 409)
-        self.assertEqual(self.complete(task, claim["lease_token"], {"synthetic": "완료"}, "contract-worker-b-peer")[0], 409)
+        self.assertEqual(self.complete(task, claim["lease_token"], {"synthetic": "\uc644\ub8cc"}, "contract-worker-b-peer")[0], 409)
         with self.assertRaises(UpstreamRejected) as error:
             self.adapter.cancel(task["id"], "Too late")
         self.assertEqual(error.exception.status, 409)
@@ -170,7 +170,7 @@ class NativeContractTests(unittest.TestCase):
         self.assertEqual(self.native.http("POST", "/v1/tasks", body)[0], 422)
 
     def test_korean_ascii_escaping_and_adapter_safe_size_boundary(self):
-        body = self.body(payload={"text": "한" * 22000})
+        body = self.body(payload={"text": "\ud55c" * 22000})
         self.assertLess(len(canonical(body).encode()), 120000)
         self.assertGreater(len(json.dumps(body).encode()), 131072)
         self.assertEqual(self.native.http("POST", "/v1/tasks", body)[0], 422)

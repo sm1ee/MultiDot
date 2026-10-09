@@ -1,6 +1,6 @@
 # Private dots config
 
-For a new installation, use [간단 설정 안내](simple-setup.md):
+For a new installation, use the [quick setup guide](simple-setup.md):
 
 ```sh
 python3 scripts/multidot.py init

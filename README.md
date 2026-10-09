@@ -5,7 +5,7 @@ pinned dot2api Native Task service. Give each dot a display name, an existing
 tunnel ID and a runtime API key. Local setup creates the internal queue
 identities, tokens, ports and state for you.
 
-**Start here: [간단 설정 안내 (한국어)](docs/simple-setup.md).**
+**Start here: [Quick setup guide](docs/simple-setup.md).**
 Names and the number of dots come from your list; A/B/C and three-dot examples
 are not requirements. Names support Unicode. Every entry defaults to `worker`;
 advanced setups may select at most one `synthesis` entry and must retain at
