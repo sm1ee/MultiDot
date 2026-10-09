@@ -4,7 +4,7 @@ A small Python controller for one dot2api Native Task service, separate `dot-b`
 and `dot-c` queues, and one `dot-a` synthesis queue. The controller owns a SQLite
 database; it never accesses dot2api's database. Runtime dependencies: **none**.
 
-**Current verification: 81 MOCK and 21 actual-upstream LOCAL_CONTRACT tests pass.**
+**Current verification: 103 MOCK and 21 actual-upstream LOCAL_CONTRACT tests pass.**
 See the [contract report](docs/local-contract-report.md) for exact scope and
 cleanup. Real B/C accounts, authenticated MCP ingress, Events, user delivery,
 and always-on hosting have not been verified. Only disposable synthetic test
@@ -13,7 +13,10 @@ The reference upstream is pinned to `66a761505ff73c5dca730260efcaeb5697db81ad`.
 
 Portable supervision is now prepared locally; see
 [persistent-runtime preparation and limits](docs/persistent-runtime.md).
-The expanded suite has 81 MOCK tests, 21 actual-upstream LOCAL_CONTRACT tests,
+For entering your existing keys yourself, use the
+[private key config guide](docs/private-key-config.md). The template is blank,
+the filled config is Git-ignored, and the user-run helper makes no network calls.
+The expanded suite has 103 MOCK tests, 21 actual-upstream LOCAL_CONTRACT tests,
 and 15 fake-control-plane runtime checks. This remains separate from REAL_DOT
 and Events acceptance; no real credential or tunnel connection was created.
 

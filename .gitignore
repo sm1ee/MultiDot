@@ -20,6 +20,16 @@ secrets/
 config/private*.json
 config/*.private.json
 config/*.local.json
+*.private.json
+*.private.json.*
+*.private.json~
+*.local.json
+*.local.json.*
+*.local.json~
+.*.private.json.swp
+.*.local.json.swp
+\#*.private.json\#
+\#*.local.json\#
 !config/*.example.json
 !config/*.sample.json
 *.sqlite*

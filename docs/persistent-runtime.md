@@ -54,6 +54,11 @@ an active database file while ignoring its WAL.
 
 ## Authorization and B-only ingress
 
+For user-entered values, see [private key config](private-key-config.md): create
+the blank private JSON, edit it yourself, then explicitly install its values
+into the existing `file:` secret files. The helper does not connect or run the
+stack. Safe user editing access to this dot's cloud remains separately unverified.
+
 `render` creates only non-secret configuration and private directories. It does
 not initialize upstream storage, create identities, issue keys, authenticate a
 real account, or connect a tunnel. Real provisioning and secret placement are
