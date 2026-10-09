@@ -16,6 +16,11 @@ such as configuration file size, available ports, and memory still apply.
 
 ## 1. Create an Empty Configuration
 
+These steps are for a fresh installation with no existing live or retained
+state to preserve. If you already have an installation, first follow
+[existing-installation guidance](persistent-runtime.md#existing-installations-and-manual-path-changes).
+Changing defaults does not move old files or renew credentials.
+
 Run this command yourself from the repository in the Linux environment where
 MultiDot will run. Python 3.11+ and the verified, pinned tool versions must be
 installed first.
@@ -24,12 +29,18 @@ installed first.
 python3 scripts/multidot.py init
 ```
 
-This creates `config/dots.private.json` with read and write access restricted
-to its owner. It does not overwrite an existing file.
+This creates `~/.multidot/config.json` with read and write access restricted
+to its owner (0600), creating a missing `~/.multidot` directory with 0700
+permissions. It does not overwrite an existing file, change existing directory
+permissions, or create the user's home directory. An unsafe or symlinked
+existing application directory is refused. Setup later puts private runtime
+state and credentials under `~/.multidot/state/`. Both defaults are under the
+current OS user's home directory, independent of the checkout or calling
+directory.
 
 ## 2. Edit the File Yourself
 
-Open `config/dots.private.json` in a trusted private editor. Fill in the empty
+Open `~/.multidot/config.json` in a trusted private editor. Fill in the empty
 strings. To use more dots, add entries to the list in the same format.
 
 ```json
@@ -90,6 +101,24 @@ This runs the full configuration in the **foreground**. Keep the session open
 and press Ctrl-C in that session to stop it. No service is installed to start
 automatically at boot. Continued operation is not guaranteed if the session
 or cloud host shuts down.
+
+## Choosing Other Paths
+
+Use `--config /ABS/PATH/dots.private.json` on `init` and `setup` to choose
+another private input file. Custom config filenames must end in `.private.json`
+or `.local.json`; the shorter `config.json` name is allowed only at the default
+`~/.multidot/config.json` location. Use `--state-root /ABS/PATH/state` on
+`setup`, `run`, `status`, and `stop` to choose another state directory. Reuse those overrides
+on later commands; a different state root is a different installation target.
+Quoted `~/...` paths are expanded by the wrapper. Relative overrides resolve
+from the directory where you invoke the command, not the repository.
+
+The reviewed tools still default to a `multidot-tools` sibling of the
+repository; `--tools-root` remains available for a different approved location.
+Keep private config and state outside the checkout. See the
+[runtime paths](persistent-runtime.md#prerequisites-and-paths) and
+[existing-installation guidance](persistent-runtime.md#existing-installations-and-manual-path-changes)
+before changing an existing setup.
 
 ## Making Changes Later
 

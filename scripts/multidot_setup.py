@@ -36,6 +36,49 @@ class SetupError(Exception):
         self.indices = sorted(set(i for i in indices if type(i) is int and i >= 0))
 
 
+def expand_path(path):
+    """Expand the user's tilde; retain relative overrides against the caller cwd."""
+    return Path(os.path.abspath(Path(path).expanduser()))
+
+
+def application_home():
+    return expand_path(Path.home() / ".multidot")
+
+
+def default_config():
+    return application_home() / "config.json"
+
+
+def application_home_fd(create=False):
+    """Create only the application directory, never the user's home or aliases."""
+    app = application_home()
+    home_fd = directory(app.parent)
+    try:
+        if create:
+            try:
+                os.mkdir(app.name, 0o700, dir_fd=home_fd)
+                os.fsync(home_fd)
+            except FileExistsError:
+                pass
+        fd = os.open(app.name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=home_fd)
+        info = os.fstat(fd)
+        if info.st_uid != os.getuid() or info.st_mode & 0o077:
+            os.close(fd)
+            raise SetupError("private_application_directory_required")
+        return fd
+    finally:
+        os.close(home_fd)
+
+
+def config_parent(path, create=False):
+    path = expand_path(path)
+    if path == default_config():
+        return application_home_fd(create=create), path.name
+    # Preserve the existing explicit-override convention. The ordinary name
+    # config.json is allowed only inside the private default application home.
+    return private_parent(path)
+
+
 def write_new(path, data):
     """Private, non-overwriting write inside an unpublished private stage."""
     path = Path(path)
@@ -56,7 +99,7 @@ def json_bytes(value):
 
 
 def initialize_config(path):
-    parent, name = private_parent(path)
+    parent, name = config_parent(path, create=True)
     try:
         fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600, dir_fd=parent)
         with os.fdopen(fd, "wb") as stream:
@@ -66,11 +109,11 @@ def initialize_config(path):
         os.fsync(parent)
     finally:
         os.close(parent)
-    return {"ok": True, "blank_config_created": True, "next_step": "Edit config/dots.private.json yourself"}
+    return {"ok": True, "blank_config_created": True, "next_step": "Edit your selected private configuration file yourself"}
 
 
 def read_private_json(path, maximum=262144):
-    parent, name = private_parent(path)
+    parent, name = config_parent(path)
     try:
         fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK, dir_fd=parent)
         with os.fdopen(fd, "rb") as stream:
@@ -126,8 +169,8 @@ def load_dots(path):
 
 
 def default_environment(state_root=None, tools_root=None):
-    tools = (Path(tools_root) if tools_root else ROOT.parent / "multidot-tools").resolve()
-    return {"repository": str(ROOT), "state_root": str(Path(state_root).absolute() if state_root else ROOT.parent / "MultiDot-state"),
+    tools = (Path(tools_root).expanduser() if tools_root is not None else ROOT.parent / "multidot-tools").resolve()
+    return {"repository": str(ROOT), "state_root": str(expand_path(state_root) if state_root is not None else application_home() / "state"),
             "upstream_checkout": str(tools / "dot2api-pinned"), "upstream_python": str(tools / "dot2api-venv/bin/python"),
             "tunnel_binary": str(tools / "tunnel-client-v0.0.16/installed/tunnel-client")}
 
@@ -291,7 +334,10 @@ def check_generated_bounds(manifest):
 
 def configure(dots, environment, *, test_only=False, control_plane_url="https://api.openai.com"):
     """Create once. Exact reruns reuse identities; only display names may change."""
-    state = Path(environment["state_root"])
+    state = expand_path(environment["state_root"])
+    if state.parent == application_home():
+        app_fd = application_home_fd(create=True)
+        os.close(app_fd)
     parent_fd = directory(state.parent)
     lock_fd = stage = runtime_lock = None
     try:

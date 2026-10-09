@@ -40,19 +40,81 @@ multidot-tools/
   tunnel-client-v0.0.16/installed/tunnel-client
 ```
 
-The default state directory is the repository's sibling `MultiDot-state`.
-For a different approved location, supply paths, never keys:
+The default user config is `~/.multidot/config.json`, and the default private
+runtime/state/credential directory is `~/.multidot/state/`. These use the
+current OS user's home directory; neither default is repository-relative or
+relative to the calling directory. The tools default above is unchanged.
+
+Default `init` creates only the missing `~/.multidot` application directory
+(0700) and its private config file (0600), never the user's home directory. It
+does not change existing directory permissions and refuses an unsafe or
+symlinked existing application directory. An existing config is never
+overwritten. Custom config filenames must still end in `.private.json` or
+`.local.json`; bare `config.json` is allowed only at the default private home
+location.
+
+For different approved locations, supply paths, never keys:
 
 ```sh
-python3 scripts/multidot.py setup --tools-root /ABS/PATH/multidot-tools --state-root /ABS/PATH/multidot-state
+python3 scripts/multidot.py init --config /ABS/PATH/dots.private.json
+# Privately edit that config yourself before setup.
+python3 scripts/multidot.py setup --config /ABS/PATH/dots.private.json --tools-root /ABS/PATH/multidot-tools --state-root /ABS/PATH/multidot-state
 python3 scripts/multidot.py run --state-root /ABS/PATH/multidot-state
 ```
 
-`/ABS/PATH/…` values are placeholders. Reuse the same state root on later
-commands; changing it creates a different installation target, not a migration.
+`/ABS/PATH/…` values are placeholders. The wrapper expands quoted `~/...` paths
+for `--config`, `--state-root` and `--tools-root`. Relative overrides resolve
+from the caller's working directory, not from the repository. Keep private
+config and state outside the checkout. Reuse the same config on `init`/`setup`
+and state root on `setup`/`run`/`status`/`stop`; changing the state root selects a
+different installation target, not a migration. Runtime commands read the
+generated config under the selected state root, not the private input JSON.
 Tool verification may execute the installed verifier/interpreter, but setup
 makes no external request and starts no service. Missing/mismatched toolchains
 are refused; the simple setup command does not install them automatically.
+
+## Existing installations and manual path changes
+
+The home-directory defaults do not automatically discover, copy, move, renew
+or reissue an existing installation. An earlier generic setup may have used
+`config/dots.private.json` in the checkout and the repository's sibling
+`MultiDot-state`. Keep using the actual old locations with explicit overrides.
+For example, to run an already-prepared installation after the normal execution
+approval:
+
+```sh
+python3 scripts/multidot.py run --config /ABS/OLD/CHECKOUT/config/dots.private.json --state-root /ABS/OLD/MultiDot-state
+python3 scripts/multidot.py status --state-root /ABS/OLD/MultiDot-state
+python3 scripts/multidot.py stop --state-root /ABS/OLD/MultiDot-state
+```
+
+Replace these placeholders with the reviewed existing paths. `run` does not
+read `--config`; the old state root selects its generated runtime config and
+installed credentials. If an approved setup rerun is needed, stop the runtime
+first and pass both `--config /ABS/OLD/CHECKOUT/config/dots.private.json` and
+`--state-root /ABS/OLD/MultiDot-state`. Do not omit the state override and
+accidentally provision a second installation under the new default.
+
+Do not copy the entire state directory to `~/.multidot/state` as a migration:
+generated files contain embedded absolute paths, and a directory copy alone
+does not update those references. A state relocation needs a separately
+reviewed migration procedure. Retain the existing state and credentials until
+that procedure is available and authorized.
+
+After reviewing the paths and permissions, the user may manually copy only
+the private input config to `~/.multidot/config.json` using a trusted private
+file tool, preserving owner-only 0600 file permissions inside an owner-only
+0700 `~/.multidot` directory, without overwriting an existing file. This is
+optional and does not relocate state. Keep explicitly
+pointing `--state-root` at the old state for setup and runtime commands. A
+config-only copy performs no credential issuance, rotation or renewal; none
+is performed by changing the defaults either. Agents must not read or copy a
+filled real config without a separately supported secure flow.
+
+Use a fresh setup at the new default only when there is no existing live or
+retained installation to preserve and the normal setup approval is in place.
+No migration or credential operation has been performed merely by updating
+these defaults or this guide.
 
 ## What user-run setup does
 
@@ -60,7 +122,7 @@ After the required approval for local credential creation, the user runs:
 
 ```sh
 python3 scripts/multidot.py init
-# Privately edit config/dots.private.json yourself.
+# Privately edit ~/.multidot/config.json yourself.
 python3 scripts/multidot.py setup
 ```
 
@@ -112,20 +174,22 @@ ID identifies its ingress, tunnel process, queue and secret directory. Display
 renames do not change these bindings.
 
 ```text
-multidot-state/
-  manifest.private.json
-  config/runtime.json
-  config/controller.json
-  config/tunnel-worker-<stable-uuid>.yaml
-  controller/hub.sqlite
-  upstream/dot2api.sqlite3
-  upstream/encryption.key
-  secrets/producer-token
-  secrets/worker-<stable-uuid>/runtime-api-key
-  secrets/worker-<stable-uuid>/worker-authorization
-  run/status.json
-  run/supervisor.lock
-  logs/lifecycle.jsonl
+~/.multidot/
+  config.json
+  state/
+    manifest.private.json
+    config/runtime.json
+    config/controller.json
+    config/tunnel-worker-<stable-uuid>.yaml
+    controller/hub.sqlite
+    upstream/dot2api.sqlite3
+    upstream/encryption.key
+    secrets/producer-token
+    secrets/worker-<stable-uuid>/runtime-api-key
+    secrets/worker-<stable-uuid>/worker-authorization
+    run/status.json
+    run/supervisor.lock
+    logs/lifecycle.jsonl
 ```
 
 Paths represent generated files, not an invitation to open or share real
@@ -238,8 +302,8 @@ For advanced operators, the default generated registry and controller state
 can be inspected without a credential or network request:
 
 ```sh
-PYTHONPATH=src python3 -m multidot --config ../MultiDot-state/config/controller.json --db ../MultiDot-state/controller/hub.sqlite workers
-PYTHONPATH=src python3 -m multidot --config ../MultiDot-state/config/controller.json --db ../MultiDot-state/controller/hub.sqlite status
+PYTHONPATH=src python3 -m multidot --config "$HOME/.multidot/state/config/controller.json" --db "$HOME/.multidot/state/controller/hub.sqlite" workers
+PYTHONPATH=src python3 -m multidot --config "$HOME/.multidot/state/config/controller.json" --db "$HOME/.multidot/state/controller/hub.sqlite" status
 ```
 
 Use the returned stable IDs in bounded job files; display names are labels.

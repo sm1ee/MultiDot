@@ -10,20 +10,22 @@ from pathlib import Path
 import sys
 
 from runtime_credentials import PrivateParser
-from multidot_setup import SetupError, configure, default_environment, initialize_config, load_dots, verify_environment
+from multidot_setup import SetupError, configure, default_config, default_environment, initialize_config, load_dots, verify_environment
 
 
 def main(argv=None):
     os.umask(0o077)
     parser = PrivateParser(description=__doc__)
     parser.add_argument("command", choices=("init", "setup", "run", "status", "stop"))
-    parser.add_argument("--config", type=Path, default=Path("config/dots.private.json"))
+    parser.add_argument("--config", type=Path, default=None,
+                        help="Private config (default: ~/.multidot/config.json)")
     parser.add_argument("--state-root", type=Path)
     parser.add_argument("--tools-root", type=Path)
     args = parser.parse_args(argv)
     try:
+        config_path = args.config if args.config is not None else default_config()
         if args.command == "init":
-            result = initialize_config(args.config)
+            result = initialize_config(config_path)
         else:
             environment = default_environment(args.state_root, args.tools_root)
             if args.command == "setup":
@@ -31,7 +33,7 @@ def main(argv=None):
                 desired_prefix = Path(environment["upstream_python"]).parent.parent.resolve()
                 if Path(sys.prefix).resolve() != desired_prefix:
                     os.execv(environment["upstream_python"], [environment["upstream_python"], str(Path(__file__).resolve()), *(sys.argv[1:] if argv is None else argv)])
-                result = configure(load_dots(args.config), environment)
+                result = configure(load_dots(config_path), environment)
             else:
                 # Never open the user config on this path. Runtime startup reads
                 # its file: secrets only after completed user-run setup.

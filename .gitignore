@@ -19,6 +19,7 @@ dist/
 secrets/
 encryption.key
 MultiDot-state/
+.multidot/
 config/private*.json
 config/*.private.json
 config/*.local.json

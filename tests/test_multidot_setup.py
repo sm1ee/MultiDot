@@ -1,5 +1,5 @@
 """Generic setup MOCK fixtures. No upstream import, real key or network use."""
-from contextlib import redirect_stderr, redirect_stdout
+from contextlib import chdir, redirect_stderr, redirect_stdout
 from io import StringIO
 import json
 import os
@@ -27,6 +27,11 @@ class GenericSetupTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="multidot-generic-setup-test-")
         self.root = Path(self.temp.name)
+        self.home = self.root / "home"
+        self.home.mkdir(mode=0o700)
+        home_patch = patch.dict(os.environ, {"HOME": str(self.home)})
+        home_patch.start()
+        self.addCleanup(home_patch.stop)
         self.config = self.root / "dots.private.json"
         self.state = self.root / "state"
         self.environment = setup.default_environment(self.state, self.root / "tools")
@@ -70,6 +75,146 @@ class GenericSetupTests(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(self.config.stat().st_mode), 0o600)
         with self.assertRaises(FileExistsError):
             setup.initialize_config(self.config)
+
+    def test_home_defaults_are_cwd_independent_and_have_no_side_effects(self):
+        first, second = self.root / "cwd-one", self.root / "cwd-two"
+        first.mkdir()
+        second.mkdir()
+        with chdir(first):
+            config = setup.default_config()
+            environment = setup.default_environment()
+        with chdir(second):
+            self.assertEqual(setup.default_config(), config)
+            self.assertEqual(setup.default_environment(), environment)
+        self.assertEqual(config, self.home / ".multidot/config.json")
+        self.assertEqual(environment["state_root"], str(self.home / ".multidot/state"))
+        self.assertFalse((self.home / ".multidot").exists())
+
+    def test_default_init_from_another_cwd_creates_private_home_files_only(self):
+        cwd = self.root / "elsewhere"
+        cwd.mkdir()
+        with chdir(cwd), redirect_stdout(StringIO()):
+            self.assertEqual(entry.main(["init"]), 0)
+        config = setup.default_config()
+        self.assertEqual(json.loads(config.read_text()), setup.EMPTY)
+        self.assertEqual(stat.S_IMODE(config.parent.stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE(config.stat().st_mode), 0o600)
+        self.assertEqual(list(cwd.iterdir()), [])
+
+    def test_default_init_subprocess_uses_only_disposable_home(self):
+        cwd = self.root / "subprocess-cwd"
+        cwd.mkdir()
+        result = subprocess.run([sys.executable, str(ROOT / "scripts/multidot.py"), "init"],
+                                cwd=cwd, env=dict(os.environ, HOME=str(self.home)),
+                                capture_output=True, text=True, timeout=10)
+        self.assertEqual(result.returncode, 0)
+        self.assertTrue(json.loads(result.stdout)["blank_config_created"])
+        self.assertEqual(json.loads(setup.default_config().read_text()), setup.EMPTY)
+        self.assertEqual(list(cwd.iterdir()), [])
+
+    def test_default_init_never_overwrites_existing_content_or_echoes_it(self):
+        config = setup.default_config()
+        setup.initialize_config(config)
+        config.write_text(MARKER)
+        output, errors = StringIO(), StringIO()
+        with redirect_stdout(output), redirect_stderr(errors):
+            self.assertEqual(entry.main(["init"]), 2)
+        self.assertEqual(config.read_text(), MARKER)
+        self.assertNotIn(MARKER, output.getvalue() + errors.getvalue())
+
+    def test_tilde_expands_for_config_state_and_tools_without_literal_directory(self):
+        setup.initialize_config(Path("~/.multidot/config.json"))
+        setup.default_config().write_text(json.dumps({"schema_version": 1, "dots": self.rows(1)}))
+        self.assertEqual(setup.load_dots(Path("~/.multidot/config.json")), self.rows(1))
+        environment = setup.default_environment(Path("~/custom-state"), Path("~/custom-tools/../tools"))
+        self.assertEqual(environment["state_root"], str(self.home / "custom-state"))
+        self.assertEqual(environment["upstream_python"], str(self.home / "tools/dot2api-venv/bin/python"))
+        self.assertFalse((self.root / "~").exists())
+
+    def test_relative_overrides_keep_caller_cwd_and_do_not_create_application_home(self):
+        cwd = self.root / "caller"
+        (cwd / "private").mkdir(parents=True, mode=0o700)
+        with chdir(cwd), redirect_stdout(StringIO()):
+            self.assertEqual(entry.main(["init", "--config", "private/dots.private.json"]), 0)
+            environment = setup.default_environment(Path("relative-state"), Path("relative-tools"))
+        self.assertTrue((cwd / "private/dots.private.json").is_file())
+        self.assertEqual(environment["state_root"], str(cwd / "relative-state"))
+        self.assertEqual(environment["upstream_python"], str(cwd / "relative-tools/dot2api-venv/bin/python"))
+        self.assertFalse((self.home / ".multidot").exists())
+
+    def test_application_directory_symlink_and_unsafe_permissions_are_refused(self):
+        app = self.home / ".multidot"
+        other = self.root / "other"
+        other.mkdir(mode=0o700)
+        app.symlink_to(other, target_is_directory=True)
+        with self.assertRaises(OSError):
+            setup.initialize_config(setup.default_config())
+        self.assertEqual(list(other.iterdir()), [])
+        app.unlink()
+        app.mkdir(mode=0o755)
+        app.chmod(0o755)
+        with self.assertRaises(setup.SetupError):
+            setup.initialize_config(setup.default_config())
+        self.assertEqual(stat.S_IMODE(app.stat().st_mode), 0o755)
+        self.assertFalse((app / "config.json").exists())
+
+    def test_default_config_symlink_and_public_read_permissions_are_refused(self):
+        app = self.home / ".multidot"
+        app.mkdir(mode=0o700)
+        self.save(self.rows(1))
+        config = setup.default_config()
+        config.symlink_to(self.config)
+        with self.assertRaises(FileExistsError):
+            setup.initialize_config(config)
+        with self.assertRaises(OSError):
+            setup.load_dots(config)
+        config.unlink()
+        config.write_text(json.dumps({"schema_version": 1, "dots": self.rows(1)}))
+        config.chmod(0o644)
+        with self.assertRaises(setup.SetupError):
+            setup.load_dots(config)
+
+    def test_missing_user_home_is_not_created(self):
+        absent = self.root / "absent-home"
+        with patch.dict(os.environ, {"HOME": str(absent)}), self.assertRaises(FileNotFoundError):
+            setup.initialize_config(setup.default_config())
+        self.assertFalse(absent.exists())
+
+    def test_default_setup_places_all_fixture_state_under_private_home(self):
+        self.environment = setup.default_environment(tools_root=self.root / "tools")
+        self.state = Path(self.environment["state_root"])
+        result = self.configure(self.rows(2))
+        self.assertTrue(result["ok"])
+        self.assertEqual(self.state, self.home / ".multidot/state")
+        config = runtime.load(self.state / "config/runtime.json")
+        self.assertEqual(config["state_root"], str(self.state))
+        for path in self.state.rglob("*"):
+            self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700 if path.is_dir() else 0o600)
+        self.assertTrue((self.state / "secrets/producer-token").is_file())
+        self.assertTrue((self.state / "controller/hub.sqlite").is_file())
+
+    def test_setup_cli_uses_default_home_config_with_mocked_provisioning(self):
+        setup.initialize_config(setup.default_config())
+        setup.default_config().write_text(json.dumps({"schema_version": 1, "dots": self.rows(1)}))
+        environment = setup.default_environment(tools_root=self.root / "tools")
+        environment["upstream_python"] = str(Path(sys.prefix) / "bin/python")
+        with patch.object(entry, "verify_environment"), \
+                patch.object(entry, "default_environment", return_value=environment), \
+                patch.object(setup, "provision_stage", self.fake_provision), \
+                patch.object(setup, "choose_ports", return_value=[30100, 30101, 30102]), \
+                redirect_stdout(StringIO()) as output:
+            self.assertEqual(entry.main(["setup"]), 0)
+        self.assertTrue(json.loads(output.getvalue())["ok"])
+        self.assertEqual(self.provision_calls, 1)
+        self.assertTrue((self.home / ".multidot/state/config/runtime.json").is_file())
+
+    def test_status_uses_home_runtime_without_reading_config_or_creating_home(self):
+        with patch.object(entry, "load_dots", side_effect=AssertionError("No private config reads")), \
+                patch.object(entry.os, "execv", side_effect=RuntimeError("Stop before execution")) as execute, \
+                redirect_stderr(StringIO()):
+            self.assertEqual(entry.main(["status"]), 2)
+        self.assertIn(str(self.home / ".multidot/state/config/runtime.json"), execute.call_args.args[1])
+        self.assertFalse((self.home / ".multidot").exists())
 
     def test_one_two_four_ten_profiles_reach_runtime_and_controller(self):
         for count in (1, 2, 4, 10):
@@ -195,6 +340,14 @@ class GenericSetupTests(unittest.TestCase):
         second = setup.default_environment(self.state, self.root / "alias/../tools")
         self.assertEqual(first["upstream_python"], second["upstream_python"])
 
+    def test_tools_symlink_then_dotdot_preserves_resolved_override_semantics(self):
+        target = self.root / "tool-parent"
+        (target / "child").mkdir(parents=True)
+        alias = self.root / "tool-alias"
+        alias.symlink_to(target / "child", target_is_directory=True)
+        environment = setup.default_environment(self.state, alias / ".." / "tools")
+        self.assertEqual(environment["upstream_python"], str(target / "tools/dot2api-venv/bin/python"))
+
     def test_generated_bounds_fail_before_provisioning(self):
         with patch.object(setup, "MAX_MANIFEST_BYTES", 16), self.assertRaises(setup.SetupError):
             self.configure(self.rows(1))
@@ -205,7 +358,8 @@ class GenericSetupTests(unittest.TestCase):
         paths = ["config/dots.private.json", "config/dots.private.json.bak",
                  "config/dots.local.json", "secrets/worker-test/runtime-api-key",
                  "secrets/worker-test/worker-authorization", "custom-state/upstream/encryption.key",
-                 "MultiDot-state/config/runtime.json", "custom-state/manifest.private.json"]
+                 "MultiDot-state/config/runtime.json", "custom-state/manifest.private.json",
+                 ".multidot/config.json", ".multidot/state/config/runtime.json"]
         result = subprocess.run(["git", "check-ignore", "--stdin"], input="\n".join(paths) + "\n",
                                 cwd=ROOT, capture_output=True, text=True, check=True)
         self.assertEqual(set(result.stdout.splitlines()), set(paths))

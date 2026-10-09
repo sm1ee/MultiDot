@@ -4,7 +4,7 @@ For a new installation, use the [quick setup guide](simple-setup.md):
 
 ```sh
 python3 scripts/multidot.py init
-# Edit config/dots.private.json yourself in a trusted private editor.
+# Edit ~/.multidot/config.json yourself in a trusted private editor.
 python3 scripts/multidot.py setup
 python3 scripts/multidot.py run
 ```
@@ -12,8 +12,32 @@ python3 scripts/multidot.py run
 The preferred config is a list of dots, each with just `name`, `tunnel_id` and
 `runtime_api_key`. The public [template](../config/dots.example.json) has blank
 values. `init` creates an owner-only 0600 private file and refuses to overwrite
-an existing file. Roles are optional: `worker` is the default and at most one
-entry may be `synthesis`, alongside at least one regular worker.
+an existing file. At the default location it creates a missing `~/.multidot`
+directory with 0700 permissions, but never creates the user's home directory.
+Unsafe or symlinked existing application directories are refused; existing
+directory permissions are not changed. Roles are optional: `worker` is the
+default and at most one entry may be `synthesis`, alongside at least one regular
+worker.
+
+The default user config is `~/.multidot/config.json`; generated runtime
+configuration, databases and credentials live under `~/.multidot/state/`.
+These locations follow the current OS user's home directory and do not depend
+on the checkout or calling directory. Override the private input with
+`--config` on `init`/`setup` and the runtime location with `--state-root` on
+`setup`/`run`/`status`/`stop`. Quoted `~/...` paths are expanded; relative
+overrides resolve from the caller's working directory. The pinned tools still
+default to the repository's `multidot-tools` sibling.
+
+For an explicit config override, retain a `.private.json` or `.local.json`
+filename, such as `/ABS/PATH/dots.private.json`. The bare `config.json` name is
+accepted only at the default `~/.multidot/config.json` private home location.
+
+Existing files are not discovered, moved, copied or reissued automatically.
+For an existing installation, keep the old config and state paths explicitly
+selected, and follow the
+[manual path-change guidance](persistent-runtime.md#existing-installations-and-manual-path-changes).
+Do not run a fresh setup at the default state path while an old installation
+needs to be preserved.
 
 Names are Unicode display labels, not queue IDs or permissions. Each label must
 be nonempty, without control characters, and fit within 320 UTF-8 bytes. The
@@ -92,8 +116,10 @@ history. Use a trusted editor without cloud sync/shared backups, and preserve
 Private `*.private.json`, `*.local.json`, common editor backup/swap files and
 `secrets/` trees are Git-ignored. Ignore rules are not encryption, do not protect
 already-tracked files and can be bypassed by `git add -f`. Never force-add keys.
-The upstream `encryption.key` is also ignored. Keep the entire state directory
-outside the checkout as the default does, including any customized state root.
+The default config filename, `config.json`, is not protected by those filename
+patterns if copied into the checkout. The upstream `encryption.key` is also
+ignored. Keep both the private input config and the entire state directory
+outside the checkout as the defaults do, including customized paths.
 Symlinks, unsafe file metadata, duplicate/unknown fields and oversized input are
 rejected. Errors do not echo values or parser details.
 

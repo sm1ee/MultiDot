@@ -19,10 +19,27 @@ Run these commands yourself in the intended runtime environment:
 
 ```sh
 python3 scripts/multidot.py init
-# Privately edit config/dots.private.json with your dots list.
+# Privately edit ~/.multidot/config.json with your dots list.
 python3 scripts/multidot.py setup
 python3 scripts/multidot.py run
 ```
+
+For a fresh installation, the default private config is
+`~/.multidot/config.json`, and generated runtime state and credentials live
+under `~/.multidot/state/`. These paths use the current OS user's home directory,
+not the repository or calling directory. Existing installations are not moved
+or reprovisioned automatically: use explicit `--config` and `--state-root`
+paths to retain them and review the
+[existing-installation guidance](docs/persistent-runtime.md#existing-installations-and-manual-path-changes)
+before using the new defaults. The pinned toolchain still defaults to the
+repository's `multidot-tools` sibling.
+
+`init` creates a missing `~/.multidot` directory with 0700 permissions and a
+0600 config file. It refuses unsafe or symlinked existing application
+directories, leaves existing directory permissions unchanged, and does not
+create the user's home directory. Custom config paths must keep a
+`.private.json` or `.local.json` suffix; bare `config.json` is allowed only at
+the default private home location.
 
 The blank [public template](config/dots.example.json) contains only
 `name`, `tunnel_id` and `runtime_api_key` per entry. You do not need to find or
